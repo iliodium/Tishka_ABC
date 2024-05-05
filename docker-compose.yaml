@@ -1,0 +1,31 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.13.2-management
+    container_name: rabbitmq
+    hostname: rabbitmq
+    restart: always
+    environment:
+      - RABBITMQ_DEFAULT_USER=rmuser
+      - RABBITMQ_DEFAULT_PASS=rmpassword
+
+    ports:
+      - 15673:15672
+    networks:
+      - rabbitmq_network
+      - ethernet_network
+    volumes:
+      - rabbitmq_data_volume:/var/lib/rabbitmq
+
+networks:
+  rabbitmq_network:
+    name: rabbitmq_network
+    driver: bridge
+    internal: true
+
+  ethernet_network:
+    name: ethernet_network
+    driver: bridge
+
+volumes:
+  rabbitmq_data_volume:
+    name: "rabbitmq_data_volume"

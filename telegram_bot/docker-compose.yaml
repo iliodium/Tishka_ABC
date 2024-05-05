@@ -1,0 +1,28 @@
+services:
+  messanger_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - rabbitmq_network
+      - ethernet_network
+    environment:
+      TG_BOT_TOKEN: ${TG_BOT_TOKEN}
+      TG_BOT_ID_CHAT: ${TG_BOT_ID_CHAT}
+
+      RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DNS: ${RABBITMQ_DNS}
+
+    restart: always
+
+
+networks:
+  rabbitmq_network:
+    external: true
+    name: rabbitmq_network
+
+
+  ethernet_network:
+    external: true
+    name: ethernet_network
