@@ -49,7 +49,7 @@ def start_dag():
 
 default_args = {
     'owner': 'airflow',
-    'start_date': datetime(2024, 5, 3),
+    'start_date': datetime(2024, 5, 5),
 }
 
 with DAG(dag_id='auto_price_change',

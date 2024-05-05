@@ -308,12 +308,6 @@ def write_data_from_mpstats(nmids) -> None:
     write_to_google_sheet('mpstat', to_sheet)
 
 
-default_args = {
-    'owner': 'airflow',
-    'start_date': datetime.datetime(2024, 5, 3),
-}
-
-
 def send_message_to_queue(message):
     credentials = pika.PlainCredentials(RABBITMQ_USERNAME, RABBITMQ_PASSWORD)
     parameters = pika.ConnectionParameters(RABBITMQ_DNS,
@@ -339,10 +333,14 @@ def start_dag():
         raise Exception
 
 
+default_args = {
+    'owner': 'airflow',
+    'start_date': datetime.datetime(2024, 5, 5),
+}
+
 with DAG(dag_id='parser_dag',
          schedule='0 6 * * *',
          default_args=default_args,
-
          ) as dag:
     dice = PythonOperator(
         task_id='parser',

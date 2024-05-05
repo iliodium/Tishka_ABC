@@ -1,15 +1,16 @@
 services:
   rabbitmq:
     image: rabbitmq:3.13.2-management
+    build: .
     container_name: rabbitmq
     hostname: rabbitmq
     restart: always
     environment:
-      - RABBITMQ_DEFAULT_USER=rmuser
-      - RABBITMQ_DEFAULT_PASS=rmpassword
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
 
     ports:
-      - 15673:15672
+      - ${RABBITMQ_EXTERNAL_PORT}:15672
     networks:
       - rabbitmq_network
       - ethernet_network

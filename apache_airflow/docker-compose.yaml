@@ -20,7 +20,7 @@
 #
 # WARNING: This configuration is for local development. Do not use it in a production deployment.
 #
-# This configuration supports basic configuration using environment variables or an .env file
+# This configuration supports basic configuration using environment variables or an .envs file
 # The following variables are supported:
 #
 # AIRFLOW_IMAGE_NAME           - Docker image name used to run Airflow.
@@ -51,6 +51,12 @@ x-airflow-common:
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
   # image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.9.0}
   build: .
+  env_file:
+    - ~/tishka/envs/.env.rabbitmq_user_log_pass
+    - ~/tishka/envs/.env.rabbitmq_dns
+    - ~/tishka/envs/.env.apache_airflow_ip_port
+
+
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -94,10 +100,6 @@ x-airflow-common:
 
     ABC_TURNOVER_14: ${ABC_TURNOVER_14}
     ABC_TURNOVER_21: ${ABC_TURNOVER_21}
-
-    RABBITMQ_USERNAME: ${RABBITMQ_USERNAME}
-    RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
-    RABBITMQ_DNS: ${RABBITMQ_DNS}
 
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
@@ -145,6 +147,7 @@ services:
       - airflow_db_network
 
   airflow-webserver:
+    container_name: airflow-webserver
     <<: *airflow-common
     command: webserver
     ports:

@@ -1,19 +1,14 @@
 services:
-  telegram_bot:
+  services_server:
     build:
       context: .
       dockerfile: Dockerfile
     networks:
       - rabbitmq_network
-      - ethernet_network
-
     env_file:
       - ~/tishka/envs/.env.rabbitmq_user_log_pass
       - ~/tishka/envs/.env.rabbitmq_dns
-
-    environment:
-      TG_BOT_TOKEN: ${TG_BOT_TOKEN}
-      TG_BOT_ID_CHAT: ${TG_BOT_ID_CHAT}
+      - ~/tishka/envs/.env.apache_airflow_ip_port
 
     restart: always
 
@@ -22,8 +17,3 @@ networks:
   rabbitmq_network:
     external: true
     name: rabbitmq_network
-
-
-  ethernet_network:
-    external: true
-    name: ethernet_network
