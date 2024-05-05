@@ -3,8 +3,5 @@
 /__pycache__
 /venv
 .env
-**/logs/
-**/plugins/
-**/config/
 test.py
 *.json
