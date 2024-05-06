@@ -52,15 +52,15 @@ def send_message_to_queue(message):
 async def with_puree(message: types.Message):
     text = message.text
     if text == "Подтвердить цены":
-        current_task = 'accept'
+        current_task = 'accept_price'
         answer = 'Хорошо, цена будет загружена сегодня в 23:30'
 
     else:
-        current_task = 'change'
+        current_task = 'change_price'
         answer = 'Изменяю цену'
 
     send_message_to_queue(current_task)
-    await message.answer(answer)
+    #await message.answer(answer)
 
 
 async def send_message(message):

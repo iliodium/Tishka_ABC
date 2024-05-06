@@ -8,22 +8,18 @@ RABBITMQ_USERNAME = os.environ['RABBITMQ_USERNAME']
 RABBITMQ_PASSWORD = os.environ['RABBITMQ_PASSWORD']
 RABBITMQ_DNS = os.environ['RABBITMQ_DNS']
 
-APACHE_WEBSERVER_IP_ADDRESS = os.environ['APACHE_WEBSERVER_IP_ADDRESS']
-APACHE_WEBSERVER_EXTERNAL_PORT = os.environ['APACHE_WEBSERVER_EXTERNAL_PORT']
-
 APACHE_AIRFLOW_USER_USERNAME = os.environ['APACHE_AIRFLOW_USER_USERNAME']
 APACHE_AIRFLOW_USER_PASSWORD = os.environ['APACHE_AIRFLOW_USER_PASSWORD']
+APACHE_AIRFLOW_DNS = os.environ['APACHE_AIRFLOW_DNS']
 
-url_manual_trigger_dag = 'http://{}:{}/api/v1/dags/{}/dagRuns'
+url_manual_trigger_dag = 'http://{}:8080/api/v1/dags/{}/dagRuns'
 
 
 def manual_trigger_dag(dag_id: str):
-    url = url_manual_trigger_dag.format(APACHE_WEBSERVER_IP_ADDRESS, APACHE_WEBSERVER_EXTERNAL_PORT, dag_id)
+    url = url_manual_trigger_dag.format(APACHE_AIRFLOW_DNS, dag_id)
     result = requests.post(url, json={}, auth=(APACHE_AIRFLOW_USER_USERNAME, APACHE_AIRFLOW_USER_PASSWORD))
-
     if result.status_code != 200:
         raise Exception
-
 
 def main():
     credentials = pika.PlainCredentials(RABBITMQ_USERNAME, RABBITMQ_PASSWORD)
@@ -39,19 +35,22 @@ def main():
     error_message = 'Не удалось'
 
     def callback_messages(ch, method, properties, body):
-        if body == b'accept':
+        if body == b'accept_price':
             try:
                 manual_trigger_dag('accept_price')
                 channel.basic_publish(exchange='', routing_key='messages', body='Цены подтверждены')
             except Exception as e:
-                channel.basic_publish(exchange='', routing_key='messages', body=f'{error_message} подтвердить')
+                print(e)
+                channel.basic_publish(exchange='', routing_key='messages', body=f'{e} подтвердить 123')
 
-        elif body == b'change':
+        elif body == b'change_price':
             try:
                 manual_trigger_dag('change_price')
                 channel.basic_publish(exchange='', routing_key='messages', body='Цены изменены')
             except Exception as e:
                 channel.basic_publish(exchange='', routing_key='messages', body=f'{error_message} изменить цену')
+        else:
+            channel.basic_publish(exchange='', routing_key='messages', body='Команда не найдена')
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
 

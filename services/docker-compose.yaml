@@ -5,10 +5,12 @@ services:
       dockerfile: Dockerfile
     networks:
       - rabbitmq_network
+
     env_file:
-      - ~/tishka/envs/.env.rabbitmq_user_log_pass
       - ~/tishka/envs/.env.rabbitmq_dns
-      - ~/tishka/envs/.env.apache_airflow_ip_port
+      - ~/tishka/envs/.env.rabbitmq_user_log_pass
+      - ~/tishka/envs/.env.apache_airflow_dns
+      - ~/tishka/envs/.env.apache_airflow_user_log_pass
 
     restart: always
 

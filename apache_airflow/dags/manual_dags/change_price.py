@@ -55,8 +55,12 @@ def change_price(nmid_price: dict):
 
 
 def main():
-    sheet_wb = FILE.worksheet("Выгрузка К")
     sheet = FILE.worksheet("Загрузка цены")
+
+    if sheet.cell(1, 4).value == 'Да':
+        return
+
+    sheet_wb = FILE.worksheet("Выгрузка К")
 
     ven_price = {
         ven: price for ven, price in zip(sheet.col_values(1)[3:], sheet.col_values(6)[3:])

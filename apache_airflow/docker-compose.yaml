@@ -54,7 +54,6 @@ x-airflow-common:
   env_file:
     - ~/tishka/envs/.env.rabbitmq_user_log_pass
     - ~/tishka/envs/.env.rabbitmq_dns
-    - ~/tishka/envs/.env.apache_airflow_ip_port
 
 
   environment:
@@ -147,7 +146,8 @@ services:
       - airflow_db_network
 
   airflow-webserver:
-    container_name: airflow-webserver
+    container_name: ${APACHE_AIRFLOW_DNS}
+    hostname: ${APACHE_AIRFLOW_DNS}
     <<: *airflow-common
     command: webserver
     ports:
