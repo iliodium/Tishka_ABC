@@ -48,7 +48,9 @@ def main():
                 manual_trigger_dag('change_price')
                 channel.basic_publish(exchange='', routing_key='messages', body='Цены изменены')
             except Exception as e:
-                channel.basic_publish(exchange='', routing_key='messages', body=f'{error_message} изменить цену')
+                channel.basic_publish(exchange='', routing_key='messages', body=f'{error_message} изменить ценe')
+        elif body == b'change_config_abc':
+            pass
         else:
             channel.basic_publish(exchange='', routing_key='messages', body='Команда не найдена')
 

@@ -1,7 +1,8 @@
-import asyncio
+import json
 import math
-import os
-from datetime import datetime, date
+import uuid
+from os import environ, path
+from datetime import datetime, date, timedelta
 from itertools import chain
 
 import gspread
@@ -9,32 +10,61 @@ import pika
 from airflow.models import DAG
 from airflow.operators.python import PythonOperator
 
-KEY_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'abc-dev-415713-a2a407ac569b.json')
-KEY = os.environ['GOOGLESHEET_KEY']
+RABBITMQ_USERNAME = environ['RABBITMQ_USERNAME']
+RABBITMQ_PASSWORD = environ['RABBITMQ_PASSWORD']
+RABBITMQ_DNS = environ['RABBITMQ_DNS']
+KEY = environ['GOOGLESHEET_KEY']
 
 url_to_price_sheet = f'https://docs.google.com/spreadsheets/d/{KEY}'
 
-GC = gspread.service_account(KEY_PATH)
+GC = gspread.service_account(path.join(path.abspath(path.dirname(__file__)), 'abc-dev-415713-a2a407ac569b.json'))
 FILE = GC.open_by_key(KEY)
 
-EBITDA_7_A = os.environ['ABC_EBITDA_7_A']
-EBITDA_7_B = os.environ['ABC_EBITDA_7_B']
+CONFIG_ABC = None
 
-EBITDA_14_A = os.environ['ABC_EBITDA_14_A']
-EBITDA_14_B = os.environ['ABC_EBITDA_14_B']
+CONNECTION_RABBITMQ = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ_DNS,
+                                                                        5672,
+                                                                        '/',
+                                                                        pika.PlainCredentials(RABBITMQ_USERNAME,
+                                                                                              RABBITMQ_PASSWORD)))
+CHANNEL_RABBITMQ = CONNECTION_RABBITMQ.channel()
 
-EBITDA_21_A = os.environ['ABC_EBITDA_21_A']
-EBITDA_21_B = os.environ['ABC_EBITDA_21_B']
 
-EBITDA_28_A = os.environ['ABC_EBITDA_28_A']
-EBITDA_28_B = os.environ['ABC_EBITDA_28_B']
+def get_config_abc():
+    b = {
+        'config': 'ABC_config',
+        'method': "GET_config",
+        'data': {
+        }
+    }
+    a = json.dumps(b, indent=4).encode('utf-8')
 
-TURNOVER_14 = os.environ['ABC_TURNOVER_14']
-TURNOVER_21 = os.environ['ABC_TURNOVER_21']
+    response = None
+    corr_id = str(uuid.uuid4())
 
-RABBITMQ_USERNAME = os.environ['RABBITMQ_USERNAME']
-RABBITMQ_PASSWORD = os.environ['RABBITMQ_PASSWORD']
-RABBITMQ_DNS = os.environ['RABBITMQ_DNS']
+    def on_response(ch, method, props, body):
+        nonlocal response
+        if corr_id == props.correlation_id:
+            response = body
+
+    result = CHANNEL_RABBITMQ.queue_declare(queue=str(uuid.uuid4()), exclusive=True)
+    callback_queue = result.method.queue
+    CHANNEL_RABBITMQ.basic_consume(
+        queue=callback_queue,
+        on_message_callback=on_response,
+        auto_ack=True)
+
+    queue_name = 'queue_config'
+    CHANNEL_RABBITMQ.basic_publish(exchange='', routing_key=queue_name, properties=pika.BasicProperties(
+        reply_to=callback_queue,
+        correlation_id=corr_id,
+    ), body=a)
+
+    while response is None:
+        CONNECTION_RABBITMQ.process_data_events(time_limit=5)
+
+    global CONFIG_ABC
+    CONFIG_ABC = json.loads(response)
 
 
 def get_vendor_codes_by_period(nmids):
@@ -45,11 +75,7 @@ def get_vendor_codes_by_period(nmids):
         [],  # 28
     ]
 
-    # current_date = date.today() - timedelta(days=35 + 10)
-    # current_date = date.today() - timedelta(days=28 + 10)
-    # current_date = date.today() - timedelta(days=21 + 10)
-    # current_date = date.today() - timedelta(days=14+10)
-    current_date = date.today()
+    current_date = date.today() - timedelta(days=2)
 
     date_pattern = "%Y-%m-%d"
     for i in nmids.values():
@@ -269,12 +295,13 @@ def calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_14_day):
     turnover = calculate_turnover(
         {k: vendorCode_dict[k] for k in vendor_codes_by_period[1] + vendor_codes_by_period[2]})
 
+    # get_config_abc()
     def ABC_7(vendor_codes):
         categories = {}
         for ven in vendor_codes:
-            if ebitda_per_day[ven] >= EBITDA_7_A:
+            if ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']["ABC_EBITDA_7_A"]:
                 categories[ven] = 'A'
-            elif ebitda_per_day[ven] >= EBITDA_7_B:
+            elif ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']["ABC_EBITDA_7_B"]:
                 categories[ven] = 'B'
             else:
                 categories[ven] = 'BC30'
@@ -284,11 +311,11 @@ def calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_14_day):
     def ABC_14(vendor_codes):
         categories = {}
         for ven in vendor_codes:
-            if ebitda_per_day[ven] >= EBITDA_14_A:
+            if ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']["ABC_EBITDA_14_A"]:
                 categories[ven] = 'A'
-            elif ebitda_per_day[ven] >= EBITDA_14_B:
+            elif ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']["ABC_EBITDA_14_B"]:
                 categories[ven] = 'B'
-            elif turnover[ven] <= TURNOVER_14:
+            elif turnover[ven] <= CONFIG_ABC['EBITDA']["ABC_TURNOVER_14"]:
                 categories[ven] = 'BC30'
             else:
                 categories[ven] = 'BC10'
@@ -298,11 +325,11 @@ def calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_14_day):
     def ABC_21(vendor_codes):
         categories = {}
         for ven in vendor_codes:
-            if ebitda_per_day[ven] >= EBITDA_21_A:
+            if ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']['ABC_EBITDA_21_A']:
                 categories[ven] = 'A'
-            elif ebitda_per_day[ven] >= EBITDA_21_B:
+            elif ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']['ABC_EBITDA_21_B']:
                 categories[ven] = 'B'
-            elif turnover[ven] >= TURNOVER_21 and categories_14_day[ven] == 'BC10':
+            elif turnover[ven] >= CONFIG_ABC['TURNOVER']['ABC_TURNOVER_21'] and categories_14_day[ven] == 'BC10':
                 categories[ven] = 'C'
             else:
                 categories[ven] = 'BC30'
@@ -312,9 +339,9 @@ def calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_14_day):
     def ABC_28(vendor_codes):
         categories = {}
         for ven in vendor_codes:
-            if ebitda_per_day[ven] >= EBITDA_28_A:
+            if ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']['ABC_EBITDA_28_A']:
                 categories[ven] = 'A'
-            elif ebitda_per_day[ven] >= EBITDA_28_B:
+            elif ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']['ABC_EBITDA_28_B']:
                 categories[ven] = 'B'
             else:
                 categories[ven] = 'C'
@@ -398,23 +425,15 @@ def write_recommended_price_to_sheet(vendor_codes_by_period, vendorCode_dict):
 
 
 def send_message_to_queue(message):
-    credentials = pika.PlainCredentials(RABBITMQ_USERNAME, RABBITMQ_PASSWORD)
-    parameters = pika.ConnectionParameters(RABBITMQ_DNS,
-                                           5672,
-                                           '/',
-                                           credentials)
-    connection = pika.BlockingConnection(parameters)
-    channel = connection.channel()
-
-    channel.basic_publish(exchange='', routing_key='messages', body=message)
-
-    connection.close()
+    CHANNEL_RABBITMQ.basic_publish(exchange='', routing_key='messages', body=message)
 
 
-async def main():
+def main():
+    global vendorCodes_union
+    get_config_abc()
+
     nmids, vendorCode_dict, vendorCode_lst_ABC = get_data_from_spreadsheet()
 
-    global vendorCodes_union
     vendorCodes_union = list(vendorCode_dict.keys())
 
     vendor_codes_by_period = get_vendor_codes_by_period(nmids)
@@ -427,7 +446,8 @@ async def main():
 
 
 def start_dag():
-    asyncio.run(main())
+    main()
+    CONNECTION_RABBITMQ.close()
 
 
 default_args = {

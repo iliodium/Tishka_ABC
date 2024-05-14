@@ -11,6 +11,7 @@ services:
 
     ports:
       - ${RABBITMQ_EXTERNAL_PORT}:15672
+
     networks:
       - rabbitmq_network
       - ethernet_network

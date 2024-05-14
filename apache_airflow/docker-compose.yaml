@@ -88,18 +88,6 @@ x-airflow-common:
 
     GOOGLESHEET_KEY: ${GOOGLESHEET_KEY}
 
-    ABC_EBITDA_7_A: ${ABC_EBITDA_7_A}
-    ABC_EBITDA_7_B: ${ABC_EBITDA_7_B}
-    ABC_EBITDA_14_A: ${ABC_EBITDA_14_A}
-    ABC_EBITDA_14_B: ${ABC_EBITDA_14_B}
-    ABC_EBITDA_21_A: ${ABC_EBITDA_21_A}
-    ABC_EBITDA_21_B: ${ABC_EBITDA_21_B}
-    ABC_EBITDA_28_A: ${ABC_EBITDA_28_A}
-    ABC_EBITDA_28_B: ${ABC_EBITDA_28_B}
-
-    ABC_TURNOVER_14: ${ABC_TURNOVER_14}
-    ABC_TURNOVER_21: ${ABC_TURNOVER_21}
-
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs

@@ -33,7 +33,8 @@ def change_price():
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
 
-    channel.basic_publish(exchange='', routing_key='services', body='change')
+    channel.basic_publish(exchange='', routing_key='services', body='change_price')
+    channel.basic_publish(exchange='', routing_key='messages', body='Цены изменены')
 
     connection.close()
 

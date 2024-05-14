@@ -1,0 +1,24 @@
+services:
+  config_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - rabbitmq_network
+      - ethernet_network
+
+    env_file:
+      - ~/tishka/envs/.env.rabbitmq_dns
+      - ~/tishka/envs/.env.rabbitmq_user_log_pass
+
+    restart: always
+
+
+networks:
+  rabbitmq_network:
+    external: true
+    name: rabbitmq_network
+
+  ethernet_network:
+    external: true
+    name: ethernet_network
