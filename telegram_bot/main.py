@@ -16,7 +16,6 @@ from aiogram.fsm.state import StatesGroup, State
 import keyboards as kb
 
 # from dotenv import load_dotenv
-# '172.21.0.2'
 # load_dotenv()
 # load_dotenv('../envs/.env.rabbitmq_dns')
 # load_dotenv('../envs/.env.rabbitmq_user_log_pass')
@@ -163,7 +162,7 @@ async def user_action(message: types.Message):
 
 
 async def send_message(message):
-    await bot.send_message(ID_CHAT, message)
+    await bot.send_message(ID_CHAT, message, parse_mode= "Markdown")
 
 
 async def run_tg_bot():

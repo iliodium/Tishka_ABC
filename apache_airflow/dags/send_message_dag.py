@@ -4,16 +4,22 @@ import uuid
 from os import environ, path
 from datetime import datetime, date, timedelta
 from itertools import chain
+from enum import StrEnum
 
 import gspread
 import pika
 from airflow.models import DAG
 from airflow.operators.python import PythonOperator
+# from dotenv import load_dotenv
 
+# load_dotenv('../.env')
+# load_dotenv('../../envs/.env.rabbitmq_dns')
+# load_dotenv('../../envs/.env.rabbitmq_user_log_pass')
 RABBITMQ_USERNAME = environ['RABBITMQ_USERNAME']
 RABBITMQ_PASSWORD = environ['RABBITMQ_PASSWORD']
 RABBITMQ_DNS = environ['RABBITMQ_DNS']
 KEY = environ['GOOGLESHEET_KEY']
+# RABBITMQ_DNS = '172.21.0.2'
 
 url_to_price_sheet = f'https://docs.google.com/spreadsheets/d/{KEY}'
 
@@ -30,6 +36,56 @@ CONNECTION_RABBITMQ = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ
 CHANNEL_RABBITMQ = CONNECTION_RABBITMQ.channel()
 
 VENDORCODES_UNION = []  # глобальная переменная для всех общих вендор кодов
+
+
+class SaleDay(StrEnum):
+    day_7 = '7 день продаж наступил у:'
+    day_14 = '14 день продаж наступил у:'
+    day_21 = '21 день продаж наступил у:'
+    day_28 = '28 день продаж наступил у:'
+
+
+class ReasonChangeABC(StrEnum):
+    change_category = 'Поменялась категория'
+    empty_remains = 'Закончились остатки'
+
+
+class GooglesheetWorksheet(StrEnum):
+    mpstat = "Выгрузка МПСТАТС"
+    wb = "Выгрузка К"
+    ebitda = "EBITDA"
+    abc = "ABC"
+    update_price = "Загрузка цены"
+
+
+class TempText(StrEnum):
+    abc_7_day = 'АБС 7 день'
+    abc_14_day = 'АБС 14 день'
+    abc_21_day = 'АБС 21 день'
+    abc_28_day = 'АБС 28 день'
+
+    abc_today = 'АБС вчера'
+    abc_now = 'АБС сегодня'
+    abc_previous = 'АБС прошлый период'
+    abc_current = 'АБС текущий период'
+
+    current_price = 'Текущая цена'
+    new_price = 'Загрузочная цена'
+
+    nmid_seller = 'Артикул продавца'
+    recommended_price = 'Рекомендованная цена'
+    reason = 'Причина'
+    decision_accept = 'Решение принято'
+    price_updated = 'Цена выгружена'
+    no = 'Нет'
+    yes = 'Да'
+
+
+class MPStatColumnName(StrEnum):
+    sku_first_date = 'sku_first_date'
+    remains = 'remains'
+    ordered = 'ordered'
+    percent_buyouts = 'percent_buyouts'
 
 
 def get_config_abc():
@@ -101,32 +157,45 @@ def get_vendor_codes_by_period(nmids):
 
 def get_message(vendor_codes):
     headers_message = [
-        '7 день продаж наступил у:\n',
-        '14 день продаж наступил у:\n',
-        '21 день продаж наступил у:\n',
-        '28 день продаж наступил у:\n',
-        '28+ день продаж наступил у:\n',
+        f'{SaleDay.day_7}\n',
+        f'{SaleDay.day_14}\n',
+        f'{SaleDay.day_21}\n',
+        f'{SaleDay.day_28}\n',
     ]
 
     message = ''
 
     for head, vend in zip(headers_message, vendor_codes):
         if vend:
-            message += head + '\n'.join(vend) + '\n'
+            message += f'*{head}*' + '\n'.join(vend) + '\n' + '\n'
+    sheet_ABC = FILE.worksheet("ABC")
+    reasons = [
+        (ReasonChangeABC.change_category, []),
+        (ReasonChangeABC.empty_remains, []),
+    ]
+    for i in reasons:
+        for k, r in zip(sheet_ABC.col_values(1)[1:], sheet_ABC.col_values(13)[1:]):
+            if r == i[0]:
+                i[1].append(k)
+
+    for i in reasons:
+        if i[1]:
+            message += f'*{i[0]}:*\n' + '\n'.join(i[1]) + '\n' + '\n'
 
     return message + url_to_price_sheet if message else 'Дни продаж не наступили'
 
 
 def get_data_from_spreadsheet():
-    sheet_mpstat = FILE.worksheet("Выгрузка МПСТАТС")
-    sheet_wb = FILE.worksheet("Выгрузка К")
-    sheet_ebitda = FILE.worksheet("EBITDA")
-    sheet_ABC = FILE.worksheet("ABC")
+    sheet_mpstat = FILE.worksheet(GooglesheetWorksheet.mpstat)
+    sheet_wb = FILE.worksheet(GooglesheetWorksheet.wb)
+    sheet_ebitda = FILE.worksheet(GooglesheetWorksheet.ebitda)
+    sheet_ABC = FILE.worksheet(GooglesheetWorksheet.abc)
 
     nmids_list_mpstat = sheet_mpstat.col_values(1)[1:]
     first_date_list = sheet_mpstat.col_values(5)[1:]
 
-    data_from_mpstat = {nmid: {'sku_first_date': ven} for nmid, ven in zip(nmids_list_mpstat, first_date_list)}
+    data_from_mpstat = {nmid: {MPStatColumnName.sku_first_date: ven} for nmid, ven in
+                        zip(nmids_list_mpstat, first_date_list)}
 
     vendorCode_list_wb = sheet_wb.col_values(1)[1:]
     nmids_list_wb = sheet_wb.col_values(2)[1:]
@@ -136,9 +205,9 @@ def get_data_from_spreadsheet():
 
     data_from_wb = {
         ven: {
-            'remains': rem,
-            'ordered': order,
-            'percent_buyouts': percent,
+            MPStatColumnName.remains: rem,
+            MPStatColumnName.ordered: order,
+            MPStatColumnName.percent_buyouts: percent,
         }
         for nmid, ven, order, percent, rem in
         zip(nmids_list_wb, vendorCode_list_wb, ordered_list, percent_buyouts_list, remains_list)
@@ -187,16 +256,17 @@ def get_data_from_spreadsheet():
                              } for nmid, ven in good_nmid_vendorCode.items()}
 
     vendorCode_lst_ABC = sheet_ABC.col_values(1)[1:]
-
-    categories_previous_day = {
+    categories_by_period = {
         7: {k: v for k, v in zip(vendorCode_lst_ABC, sheet_ABC.col_values(2)[1:])},
         14: {k: v for k, v in zip(vendorCode_lst_ABC, sheet_ABC.col_values(4)[1:])},
         21: {k: v for k, v in zip(vendorCode_lst_ABC, sheet_ABC.col_values(6)[1:])},
         28: {k: v for k, v in zip(vendorCode_lst_ABC, sheet_ABC.col_values(8)[1:])},
+        '28plus_previous': {k: v for k, v in zip(vendorCode_lst_ABC, sheet_ABC.col_values(10)[1:])},
+        '28plus_current': {k: v for k, v in zip(vendorCode_lst_ABC, sheet_ABC.col_values(11)[1:])},
 
     }
 
-    return nmids_dict, vendorCode_dict, categories_previous_day
+    return nmids_dict, vendorCode_dict, categories_by_period
 
 
 def calculate_ebitda_per_day(vendorCode_dict):
@@ -210,7 +280,10 @@ def calculate_ebitda_per_day(vendorCode_dict):
 def calculate_turnover(vendorCode_dict):
     turnover = {}
     for vendor_code, item in vendorCode_dict.items():
-        turnover[vendor_code] = item['remains'] / item['ordered']
+        try:
+            turnover[vendor_code] = item['remains'] / item['ordered']
+        except ZeroDivisionError:
+            turnover[vendor_code] = 0
 
     return turnover
 
@@ -221,19 +294,27 @@ def enumerate2(xs, start=0, step=1):
         start += step
 
 
+def round_price(price):
+    return int(math.ceil(price))
+
+
 def write_categories_to_google_sheet(categories, vendorCode_dict):
     sheet_ABC = FILE.worksheet("ABC")
 
     headers = [
-        'Артикул продавца',
-        'АБС 7 день',
-        'Рекомендованная цена',
-        'АБС 14 день',
-        'Рекомендованная цена',
-        'АБС 21 день',
-        'Рекомендованная цена',
-        'АБС 28 день',
-        'Рекомендованная цена',
+        TempText.nmid_seller,
+        TempText.abc_7_day,
+        TempText.recommended_price,
+        TempText.abc_14_day,
+        TempText.recommended_price,
+        TempText.abc_21_day,
+        TempText.recommended_price,
+        TempText.abc_28_day,
+        TempText.recommended_price,
+        TempText.abc_today,
+        TempText.abc_now,
+        TempText.recommended_price,
+        TempText.reason,
     ]
 
     rec_price_func = lambda prime_cost, logistics, kosti, margin: (prime_cost + logistics + kosti) / (0.69 - margin)
@@ -246,15 +327,17 @@ def write_categories_to_google_sheet(categories, vendorCode_dict):
         'B': 0.3,
         'C': 0.1
     }
-    len_headers = len(headers) - 1
+    len_headers = len(headers)
+    len_headers_m = len_headers - 1
+
     list_ABC = sheet_ABC.get_all_values()[1:]
-    dict_ABC = {i[0]: i for i in list_ABC}
+    dict_ABC = {i[0]: i for i in list_ABC if i[0] in VENDORCODES_UNION}
 
     for ven in VENDORCODES_UNION:
         if not ven in dict_ABC:
-            dict_ABC[ven] = [ven] + [None] * len_headers
+            dict_ABC[ven] = [ven] + [None] * len_headers_m
 
-    for ind, lst in enumerate2(categories, start=1, step=2):
+    for ind, lst in enumerate2(categories[:-1], start=1, step=2):
         for vendor_code in lst:
             category = lst[vendor_code]
             rec_price = None
@@ -267,10 +350,25 @@ def write_categories_to_google_sheet(categories, vendorCode_dict):
                                            category_margin[category])
 
             if rec_price is not None:
-                dict_ABC[vendor_code][ind + 1] = int(math.ceil(rec_price))
+                dict_ABC[vendor_code][ind + 1] = round_price(rec_price)
+    # 28+
+    category = categories[-1]
+    for ven in category.keys():
+        if dict_ABC[ven][9] == '':
+            dict_ABC[ven][9] = category[ven]['category']
+            dict_ABC[ven][10] = category[ven]['category']
+        else:
+            dict_ABC[ven][9] = dict_ABC[ven][10]
+            dict_ABC[ven][10] = category[ven]['category']
+            dict_ABC[ven][11] = round_price(rec_price_func(vendorCode_dict[ven]['prime_cost'],
+                                                           vendorCode_dict[ven]['logistics'],
+                                                           vendorCode_dict[ven]['kosti'],
+                                                           category[ven]['price'])) if category[ven].get(
+                'price') else ''
+            dict_ABC[ven][12] = category[ven]['message'] if category[ven].get('message') else ''
 
     sheet_ABC.clear()
-    sheet_ABC.resize(len(VENDORCODES_UNION) + 1, len(headers))
+    sheet_ABC.resize(len(VENDORCODES_UNION) + 1, len_headers)
     sheet_ABC.update(range_name='A1', values=[headers])
     sheet_ABC.update(range_name='A2', values=list(dict_ABC.values()))
 
@@ -291,14 +389,11 @@ def write_categories_to_google_sheet(categories, vendorCode_dict):
                 }})
 
 
-def calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_14_day):
-    all_vendor_codes = chain.from_iterable(vendor_codes_by_period)
+def calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_by_period):
+    all_vendor_codes = list(chain.from_iterable(vendor_codes_by_period))
     ebitda_per_day = calculate_ebitda_per_day({k: vendorCode_dict[k] for k in all_vendor_codes})
+    turnover = calculate_turnover({k: vendorCode_dict[k] for k in all_vendor_codes})
 
-    turnover = calculate_turnover(
-        {k: vendorCode_dict[k] for k in vendor_codes_by_period[1] + vendor_codes_by_period[2]})
-
-    # get_config_abc()
     def ABC_7(vendor_codes):
         categories = {}
         for ven in vendor_codes:
@@ -332,7 +427,8 @@ def calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_14_day):
                 categories[ven] = 'A'
             elif ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']['ABC_EBITDA_21_B']:
                 categories[ven] = 'B'
-            elif turnover[ven] >= CONFIG_ABC['TURNOVER']['ABC_TURNOVER_21'] and categories_14_day[ven] == 'BC10':
+            elif turnover[ven] >= CONFIG_ABC['TURNOVER']['ABC_TURNOVER_21'] and categories_by_period[14].get(
+                    ven) == 'BC10':
                 categories[ven] = 'C'
             else:
                 categories[ven] = 'BC30'
@@ -354,12 +450,50 @@ def calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_14_day):
     def ABC_28plus(vendor_codes):
         categories = {}
         for ven in vendor_codes:
-            if ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']['ABC_EBITDA_28_A']:
-                categories[ven] = 'A'
-            elif ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']['ABC_EBITDA_28_B']:
-                categories[ven] = 'B'
+            if not categories_by_period['28plus_previous'].get(ven):
+                categories[ven] = {'category': ABC_28([ven])[ven]}
+            elif ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']['ABC_EBITDA_28PLUS_A']:
+                if categories_by_period['28plus_previous'][ven] == 'A':
+                    categories[ven] = {'category': ABC_28([ven])[ven]}
+                else:
+                    categories[ven] = {
+                        'category': 'A',
+                        'price': 0.4,
+                        'message': 'Поменялась категория'
+                    }
+            elif ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']['ABC_EBITDA_28PLUS_B']:
+                if categories_by_period['28plus_previous'][ven] == 'B':
+                    categories[ven] = {'category': ABC_28([ven])[ven]}
+                else:
+                    if categories_by_period['28plus_previous'][ven] == 'A' and turnover[ven] <= CONFIG_ABC['TURNOVER'][
+                        'ABC_TURNOVER_28PLUS_B']:
+                        categories[ven] = {
+                            'price': 0.4,
+                            'message': 'Закончились остатки'
+                        }
+                    else:
+                        categories[ven] = {
+                            'price': 0.3,
+                            'message': 'Поменялась категория'
+                        }
+                    categories[ven]['category'] = 'B'
+
+            elif categories_by_period['28plus_previous'][ven] == 'C':
+                categories[ven] = {'category': 'C'}
+
+            elif categories_by_period['28plus_previous'][ven] in ('A', 'B') and turnover[ven] <= CONFIG_ABC['TURNOVER'][
+                'ABC_TURNOVER_28PLUS_C']:
+                categories[ven] = {
+                    'category': 'C',
+                    'price': 0.3,
+                    'message': 'Закончились остатки'
+                }
             else:
-                categories[ven] = 'C'
+                categories[ven] = {
+                    'category': 'C',
+                    'price': 0.1,
+                    'message': 'Поменялась категория'
+                }
 
         return categories
 
@@ -375,8 +509,8 @@ def calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_14_day):
 
 
 def write_recommended_price_to_sheet(vendor_codes_by_period, vendorCode_dict):
-    sheet = FILE.worksheet("Загрузка цены")
-    sheet_ABC = FILE.worksheet("ABC")
+    sheet = FILE.worksheet(GooglesheetWorksheet.update_price)
+    sheet_ABC = FILE.worksheet(GooglesheetWorksheet.abc)
     list_ABC = sheet_ABC.get_all_values()[1:]
 
     dict_ABC = {
@@ -394,25 +528,25 @@ def write_recommended_price_to_sheet(vendor_codes_by_period, vendorCode_dict):
     }
 
     headers_1 = [
-        'Решение принято',
-        'Нет',
-        'Цена выгружена',
-        'Нет',
+        TempText.decision_accept,
+        TempText.no,
+        TempText.price_updated,
+        TempText.no,
     ]
 
     headers_2 = [
-        'Артикул продавца',
-        'ABC прошлая неделя',
-        'ABC текущая неделя',
-        'Текущая цена',
-        'Рекомендованная цена',
-        'Загрузочная цена',
+        TempText.nmid_seller,
+        TempText.abc_previous,
+        TempText.abc_current,
+        TempText.current_price,
+        TempText.recommended_price,
+        TempText.new_price,
     ]
 
     sheet.clear()
     data = []
 
-    for ind, per in enumerate(vendor_codes_by_period, start=1):
+    for ind, per in enumerate(vendor_codes_by_period[:-1], start=1):
         for ven in per:
             row = []
             row.append(ven)
@@ -428,16 +562,25 @@ def write_recommended_price_to_sheet(vendor_codes_by_period, vendorCode_dict):
 
             data.append(row)
 
-    # sheet.resize(len(data) + 3, len(headers_2))
-    sheet.resize(len(data) + 20, len(headers_2))
+    for ven, prev_abc, cur_abc, rec_price, reason in zip(
+            sheet_ABC.col_values(1)[1:],
+            sheet_ABC.col_values(10)[1:],
+            sheet_ABC.col_values(11)[1:],
+            sheet_ABC.col_values(12)[1:],
+            sheet_ABC.col_values(13)[1:],
+    ):
+        if reason:
+            data.append([ven, prev_abc, cur_abc, vendorCode_dict[ven]['price'], rec_price])
+
+    sheet.resize(len(data) + 3, len(headers_2))
     sheet.update(range_name='A1', values=[headers_1])
     sheet.update(range_name='A3', values=[headers_2])
 
     if data:
         sheet.update(range_name='A4', values=data)
     else:
-        sheet.update_cell(1, 2, 'Да')
-        sheet.update_cell(1, 4, 'Да')
+        sheet.update_cell(1, 2, TempText.yes)
+        sheet.update_cell(1, 4, TempText.yes)
 
 
 def send_message_to_queue(message):
@@ -448,16 +591,14 @@ def main():
     global VENDORCODES_UNION
     get_config_abc()
 
-    nmids, vendorCode_dict, vendorCode_lst_ABC = get_data_from_spreadsheet()
-
+    nmids, vendorCode_dict, categories_by_period = get_data_from_spreadsheet()
     VENDORCODES_UNION = list(vendorCode_dict.keys())
-
     vendor_codes_by_period = get_vendor_codes_by_period(nmids)
 
-    message = get_message(vendor_codes_by_period)
-    calculate_ABC(vendor_codes_by_period, vendorCode_dict, vendorCode_lst_ABC[14])
+    calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_by_period)
     write_recommended_price_to_sheet(vendor_codes_by_period, vendorCode_dict)
 
+    message = get_message(vendor_codes_by_period)
     send_message_to_queue(message)
 
 

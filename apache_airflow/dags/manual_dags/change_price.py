@@ -1,6 +1,5 @@
 import os
 import time
-from datetime import datetime
 
 import gspread
 import requests
@@ -15,7 +14,6 @@ GC = gspread.service_account(KEY_PATH)
 FILE = GC.open_by_key(KEY)
 
 token_wb_price = os.environ['TOKEN_WB_PRICE']
-
 url_price = 'https://discounts-prices-api.wb.ru/api/v2/upload/task'
 
 headers_temp_wb = lambda token: {
@@ -55,10 +53,6 @@ def change_price(nmid_price: dict):
 
 def main():
     sheet = FILE.worksheet("Загрузка цены")
-
-    if sheet.cell(1, 4).value == 'Да':
-        return
-
     sheet_wb = FILE.worksheet("Выгрузка К")
 
     ven_price = {
