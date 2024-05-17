@@ -15,11 +15,20 @@ from aiogram.fsm.state import StatesGroup, State
 
 import keyboards as kb
 
+# from dotenv import load_dotenv
+# '172.21.0.2'
+# load_dotenv()
+# load_dotenv('../envs/.env.rabbitmq_dns')
+# load_dotenv('../envs/.env.rabbitmq_user_log_pass')
+
+
 TOKEN = os.environ['TG_BOT_TOKEN']
 ID_CHAT = os.environ['TG_BOT_ID_CHAT']
 RABBITMQ_USERNAME = os.environ['RABBITMQ_USERNAME']
 RABBITMQ_PASSWORD = os.environ['RABBITMQ_PASSWORD']
 RABBITMQ_DNS = os.environ['RABBITMQ_DNS']
+
+#RABBITMQ_DNS = '172.21.0.2'
 
 CONNECTION_RABBITMQ = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ_DNS,
                                                                         5672,

@@ -35,23 +35,22 @@ request_body_temp = {
 
 
 def change_price(nmid_price: dict):
-    if nmid_price:
-        headers = headers_temp_wb(token_wb_price)
+    headers = headers_temp_wb(token_wb_price)
 
-        request_body = request_body_temp.copy()
-        for nmid, price in nmid_price.items():
-            request_body['data'].append(
-                {
-                    "nmID": nmid,
-                    "price": price * 2,
-                    "discount": 50
-                }
-            )
+    request_body = request_body_temp.copy()
+    for nmid, price in nmid_price.items():
+        request_body['data'].append(
+            {
+                "nmID": nmid,
+                "price": price * 2,
+                "discount": 50
+            }
+        )
 
+    request = requests.post(url_price, headers=headers, json=request_body)
+    while request.status_code in (401, 429, 500):
         request = requests.post(url_price, headers=headers, json=request_body)
-        while request.status_code in (401, 429, 500):
-            request = requests.post(url_price, headers=headers, json=request_body)
-            time.sleep(0.2),
+        time.sleep(0.2),
 
 
 def main():
@@ -74,8 +73,8 @@ def main():
     nmid_price = {
         int(ven_nmid[ven]): int(ven_price[ven]) for ven in ven_price
     }
-
-    change_price(nmid_price)
+    if nmid_price:
+        change_price(nmid_price)
 
     sheet.update_cell(1, 4, 'Да')
 
