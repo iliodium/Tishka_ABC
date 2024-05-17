@@ -29,6 +29,8 @@ CONNECTION_RABBITMQ = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ
                                                                                               RABBITMQ_PASSWORD)))
 CHANNEL_RABBITMQ = CONNECTION_RABBITMQ.channel()
 
+VENDORCODES_UNION = []  # глобальная переменная для всех общих вендор кодов
+
 
 def get_config_abc():
     b = {
@@ -73,6 +75,7 @@ def get_vendor_codes_by_period(nmids):
         [],  # 14
         [],  # 21
         [],  # 28
+        [],  # 28+
     ]
 
     current_date = date.today() - timedelta(days=2)
@@ -90,6 +93,8 @@ def get_vendor_codes_by_period(nmids):
             vendor_codes[2].append(i["vendorCode"])
         elif dt == 28:
             vendor_codes[3].append(i["vendorCode"])
+        elif dt > 28:
+            vendor_codes[4].append(i["vendorCode"])
 
     return vendor_codes
 
@@ -100,6 +105,7 @@ def get_message(vendor_codes):
         '14 день продаж наступил у:\n',
         '21 день продаж наступил у:\n',
         '28 день продаж наступил у:\n',
+        '28+ день продаж наступил у:\n',
     ]
 
     message = ''
@@ -215,9 +221,6 @@ def enumerate2(xs, start=0, step=1):
         start += step
 
 
-vendorCodes_union = []  # глобальная переменная для всех общих вендор кодов
-
-
 def write_categories_to_google_sheet(categories, vendorCode_dict):
     sheet_ABC = FILE.worksheet("ABC")
 
@@ -247,7 +250,7 @@ def write_categories_to_google_sheet(categories, vendorCode_dict):
     list_ABC = sheet_ABC.get_all_values()[1:]
     dict_ABC = {i[0]: i for i in list_ABC}
 
-    for ven in vendorCodes_union:
+    for ven in VENDORCODES_UNION:
         if not ven in dict_ABC:
             dict_ABC[ven] = [ven] + [None] * len_headers
 
@@ -267,7 +270,7 @@ def write_categories_to_google_sheet(categories, vendorCode_dict):
                 dict_ABC[vendor_code][ind + 1] = int(math.ceil(rec_price))
 
     sheet_ABC.clear()
-    sheet_ABC.resize(len(vendorCodes_union) + 1, len(headers))
+    sheet_ABC.resize(len(VENDORCODES_UNION) + 1, len(headers))
     sheet_ABC.update(range_name='A1', values=[headers])
     sheet_ABC.update(range_name='A2', values=list(dict_ABC.values()))
 
@@ -348,11 +351,24 @@ def calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_14_day):
 
         return categories
 
+    def ABC_28plus(vendor_codes):
+        categories = {}
+        for ven in vendor_codes:
+            if ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']['ABC_EBITDA_28_A']:
+                categories[ven] = 'A'
+            elif ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']['ABC_EBITDA_28_B']:
+                categories[ven] = 'B'
+            else:
+                categories[ven] = 'C'
+
+        return categories
+
     categories = [
         ABC_7(vendor_codes_by_period[0]),
         ABC_14(vendor_codes_by_period[1]),
         ABC_21(vendor_codes_by_period[2]),
         ABC_28(vendor_codes_by_period[3]),
+        ABC_28plus(vendor_codes_by_period[4]),
     ]
 
     write_categories_to_google_sheet(categories, vendorCode_dict)
@@ -429,20 +445,20 @@ def send_message_to_queue(message):
 
 
 def main():
-    global vendorCodes_union
+    global VENDORCODES_UNION
     get_config_abc()
 
     nmids, vendorCode_dict, vendorCode_lst_ABC = get_data_from_spreadsheet()
 
-    vendorCodes_union = list(vendorCode_dict.keys())
+    VENDORCODES_UNION = list(vendorCode_dict.keys())
 
     vendor_codes_by_period = get_vendor_codes_by_period(nmids)
 
     message = get_message(vendor_codes_by_period)
     calculate_ABC(vendor_codes_by_period, vendorCode_dict, vendorCode_lst_ABC[14])
     write_recommended_price_to_sheet(vendor_codes_by_period, vendorCode_dict)
-    if message:
-        send_message_to_queue(message)
+
+    send_message_to_queue(message)
 
 
 def start_dag():

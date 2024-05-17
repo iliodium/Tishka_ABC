@@ -21,16 +21,22 @@ keyboard = ReplyKeyboardMarkup(
 parameters = []
 
 w1 = 'Ебитда'
-w2 = 'Оборачиваемость'
 for day in (7, 14, 21, 28):
     parameters.append([])
     for category in ('A', 'B'):
         parameters[-1].append(f'{w1} {day} {category}')
+parameters.append([])
+for category in ('A', 'B'):
+    parameters[-1].append(f'{w1} 28+ {category}')
 
 parameters.append([])
+w2 = 'Оборачиваемость'
 
 for day in (14, 21):
     parameters[-1].append(f'{w2} {day}')
+parameters.append([])
+for category in ('B', 'C'):
+    parameters[-1].append(f'{w2} 28+ {category}')
 
 parameters.append(['Назад'])
 

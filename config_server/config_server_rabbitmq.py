@@ -40,7 +40,8 @@ def abc_config_post(body):
             parameter = 'ABC_' + old_parameter.replace(
                 " ", "_").replace(
                 "Ебитда", "EBITDA").replace(
-                "Оборачиваемость", "TURNOVER")
+                "Оборачиваемость", "TURNOVER").replace(
+                '+', 'PLUS')
 
             value = body['data'][old_parameter]
             if "EBITDA" in parameter:
@@ -85,7 +86,8 @@ def abc_config_get_config_message(ch, properties):
             "ABC_", " " * 5).replace(
             "EBITDA", "Ебитда").replace(
             "TURNOVER", "Оборачиваемость").replace(
-            "_", " ").strip()
+            "_", " ").replace(
+            "PLUS", "+").strip()
         ch.basic_publish(exchange='',
                          routing_key=properties.reply_to,
                          properties=pika.BasicProperties(correlation_id=properties.correlation_id),
