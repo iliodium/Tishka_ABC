@@ -27,7 +27,7 @@ RABBITMQ_USERNAME = os.environ['RABBITMQ_USERNAME']
 RABBITMQ_PASSWORD = os.environ['RABBITMQ_PASSWORD']
 RABBITMQ_DNS = os.environ['RABBITMQ_DNS']
 
-#RABBITMQ_DNS = '172.21.0.2'
+# RABBITMQ_DNS = '172.21.0.2'
 
 CONNECTION_RABBITMQ = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ_DNS,
                                                                         5672,
@@ -162,7 +162,7 @@ async def user_action(message: types.Message):
 
 
 async def send_message(message):
-    await bot.send_message(ID_CHAT, message, parse_mode= "Markdown")
+    await bot.send_message(ID_CHAT, message, parse_mode="HTML")
 
 
 async def run_tg_bot():

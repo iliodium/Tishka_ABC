@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 
 import gspread
 from airflow.models import DAG
