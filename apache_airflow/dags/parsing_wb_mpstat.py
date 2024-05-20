@@ -77,45 +77,6 @@ def batch(iterable, batch_size=1):
         yield iterable[ndx:min(ndx + batch_size, l)]
 
 
-def get_nmids_wb():
-    url = url_temp_stocks.format(datetime.strftime(datetime.now(), "%Y-%m-%dT"))
-    headers = headers_temp_wb(token_wb)
-    request = requests.get(url, headers=headers)
-    while request.status_code in (400, 403, 429, 500):
-        request = requests.get(url, headers=headers)
-        time.sleep(0.2)
-
-    return [k['nmId'] for k in request.json()]
-
-
-def get_nmids_mpstat():
-    seller_name = 'Tiшka'
-    request_body = {
-        'startRow': 0,
-        'endRow': 5000,
-        'filterModel': {},
-        'sortModel': [],
-    }
-
-    df_c, dt_c, df_p, dt_p = get_dates()
-
-    url = url_temp_mpstat.format(df_c, dt_c, seller_name)
-
-    request = requests.post(url, headers=headers_temp_mpstat(token_mpstat), json=request_body)
-    while request.status_code in (202, 429, 500):
-        request = requests.post(url, headers=headers_temp_mpstat(token_mpstat), json=request_body)
-
-        time.sleep(0.2)
-
-    return [data['id'] for data in request.json()['data']]
-
-
-def get_union_nmids():
-    nmids_wb = get_nmids_wb()
-    nmids_mpstat = get_nmids_mpstat()
-    return list(set(nmids_mpstat).intersection(nmids_wb))
-
-
 def get_stocks():
     # "%Y-%m-%dT%H:%M:%S"
 
@@ -271,7 +232,7 @@ def write_data_from_wb(nmids_list) -> None:
     write_to_google_sheet('wb', data)
 
 
-def write_data_from_mpstats(nmids) -> None:
+def write_data_from_mpstat_and_get_nmids() -> list:
     seller_name = 'Tiшka'
     request_body = {
         'startRow': 0,
@@ -292,25 +253,28 @@ def write_data_from_mpstats(nmids) -> None:
 
     r = request.json()
 
+    nmids = []
     to_sheet = []
     for data in r['data']:
-        if data['id'] in nmids:
-            to_sheet.append([])
-            to_sheet[-1].append(data['id'])
-            to_sheet[-1].append('https:' + data['thumb'])
-            to_sheet[-1].append(data['start_price'])
-            to_sheet[-1].append(data['final_price'])
-            to_sheet[-1].append(data['sku_first_date'])
+        nmids.append(data['id'])
+
+        to_sheet.append([])
+        to_sheet[-1].append(data['id'])
+        to_sheet[-1].append('https:' + data['thumb'])
+        to_sheet[-1].append(data['start_price'])
+        to_sheet[-1].append(data['final_price'])
+        to_sheet[-1].append(data['sku_first_date'])
 
     write_to_google_sheet('mpstat', to_sheet)
 
+    return nmids
+
 
 def send_message_to_queue(message):
-    credentials = pika.PlainCredentials(RABBITMQ_USERNAME, RABBITMQ_PASSWORD)
     parameters = pika.ConnectionParameters(RABBITMQ_DNS,
                                            5672,
                                            '/',
-                                           credentials)
+                                           pika.PlainCredentials(RABBITMQ_USERNAME, RABBITMQ_PASSWORD))
     connection = pika.BlockingConnection(parameters)
     channel = connection.channel()
 
@@ -321,9 +285,9 @@ def send_message_to_queue(message):
 
 def start_dag():
     try:
-        nmids_list = get_union_nmids()
-        write_data_from_mpstats(nmids_list)
-        write_data_from_wb(nmids_list)
+        nmids = write_data_from_mpstat_and_get_nmids()
+        write_data_from_wb(nmids)
+
         send_message_to_queue('Сбор данных прошел успешно')
     except Exception as e:
         send_message_to_queue('Ошибка при сборе данных')
