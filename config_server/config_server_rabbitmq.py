@@ -5,11 +5,6 @@ import sys
 import pika
 import toml
 
-# from dotenv import load_dotenv
-# '172.21.0.2'
-# load_dotenv('../envs/.env.rabbitmq_dns')
-# load_dotenv('../envs/.env.rabbitmq_user_log_pass')
-
 RABBITMQ_USERNAME = os.environ['RABBITMQ_USERNAME']
 RABBITMQ_PASSWORD = os.environ['RABBITMQ_PASSWORD']
 RABBITMQ_DNS = os.environ['RABBITMQ_DNS']

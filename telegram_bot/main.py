@@ -15,26 +15,11 @@ from aiogram.fsm.state import StatesGroup, State
 
 import keyboards as kb
 
-# from dotenv import load_dotenv
-# load_dotenv()
-# load_dotenv('../envs/.env.rabbitmq_dns')
-# load_dotenv('../envs/.env.rabbitmq_user_log_pass')
-
-
 TOKEN = os.environ['TG_BOT_TOKEN']
 ID_CHAT = os.environ['TG_BOT_ID_CHAT']
 RABBITMQ_USERNAME = os.environ['RABBITMQ_USERNAME']
 RABBITMQ_PASSWORD = os.environ['RABBITMQ_PASSWORD']
 RABBITMQ_DNS = os.environ['RABBITMQ_DNS']
-
-# RABBITMQ_DNS = '172.21.0.2'
-
-CONNECTION_RABBITMQ = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ_DNS,
-                                                                        5672,
-                                                                        '/',
-                                                                        pika.PlainCredentials(RABBITMQ_USERNAME,
-                                                                                              RABBITMQ_PASSWORD)))
-CHANNEL_RABBITMQ = CONNECTION_RABBITMQ.channel()
 
 RABBITMQ_URL = f"amqp://{RABBITMQ_USERNAME}:{RABBITMQ_PASSWORD}@{RABBITMQ_DNS}/"
 
@@ -78,22 +63,31 @@ async def set_new_value(message: types.Message, state: FSMContext):
         send_message_to_queue(json.dumps(b, indent=4).encode('utf-8'), 'queue_config')
         await message.answer(text=f"{data['PARAMETER']} = {message.text}")
     except ValueError:
-        await message.answer(text=f"Неверное значение\n ValueError")
+        await message.answer(text=f"Неверное значение\nValueError")
     finally:
         await state.clear()
 
 
 def send_message_to_queue(body, routing_key='services'):
+    CONNECTION_RABBITMQ = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ_DNS,
+                                                                            5672,
+                                                                            '/',
+                                                                            pika.PlainCredentials(
+                                                                                RABBITMQ_USERNAME,
+                                                                                RABBITMQ_PASSWORD)))
+    CHANNEL_RABBITMQ = CONNECTION_RABBITMQ.channel()
     CHANNEL_RABBITMQ.basic_publish(exchange='', routing_key=routing_key, body=body)
+    CONNECTION_RABBITMQ.close()
 
 
 def get_config_abc_message():
-    connection = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ_DNS,
-                                                                   5672,
-                                                                   '/',
-                                                                   pika.PlainCredentials(RABBITMQ_USERNAME,
-                                                                                         RABBITMQ_PASSWORD)))
-    channel = connection.channel()
+    CONNECTION_RABBITMQ = pika.BlockingConnection(pika.ConnectionParameters(RABBITMQ_DNS,
+                                                                            5672,
+                                                                            '/',
+                                                                            pika.PlainCredentials(
+                                                                                RABBITMQ_USERNAME,
+                                                                                RABBITMQ_PASSWORD)))
+    CHANNEL_RABBITMQ = CONNECTION_RABBITMQ.channel()
     response = None
     corr_id = str(uuid.uuid4())
 
@@ -102,9 +96,9 @@ def get_config_abc_message():
         if corr_id == props.correlation_id:
             response = body
 
-    result = channel.queue_declare(queue='', exclusive=True)
+    result = CHANNEL_RABBITMQ.queue_declare(queue='', exclusive=True)
     callback_queue = result.method.queue
-    channel.basic_consume(
+    CHANNEL_RABBITMQ.basic_consume(
         queue=callback_queue,
         on_message_callback=on_response,
         auto_ack=True)
@@ -117,15 +111,14 @@ def get_config_abc_message():
     }
     queue_name = 'queue_config'
 
-    channel.basic_publish(exchange='', routing_key=queue_name, properties=pika.BasicProperties(
+    CHANNEL_RABBITMQ.basic_publish(exchange='', routing_key=queue_name, properties=pika.BasicProperties(
         reply_to=callback_queue,
         correlation_id=corr_id,
     ), body=json.dumps(b, indent=4).encode('utf-8'))
 
     while response is None:
-        connection.process_data_events(time_limit=5)
-
-    connection.close()
+        CONNECTION_RABBITMQ.process_data_events(time_limit=5)
+    CONNECTION_RABBITMQ.close()
 
     return response
 
@@ -165,11 +158,6 @@ async def send_message(message):
     await bot.send_message(ID_CHAT, message, parse_mode="HTML")
 
 
-async def run_tg_bot():
-    t = asyncio.create_task(dp.start_polling(bot))
-    await t
-
-
 async def run_rabbitmq(loop):
     # Connecting with the given parameters is also possible.
     # aio_pika.connect_robust(host="host", login="login", password="password")
@@ -195,6 +183,11 @@ async def run_rabbitmq(loop):
                         break
 
 
+async def run_tg_bot():
+    t = asyncio.create_task(dp.start_polling(bot))
+    await t
+
+
 async def start(loop):
     await asyncio.gather(run_tg_bot(), run_rabbitmq(loop))
 
@@ -216,6 +209,3 @@ if __name__ == '__main__':
         except Exception as e:
             time.sleep(3)
             print(e)
-        finally:
-            if not CONNECTION_RABBITMQ.is_closed:
-                CONNECTION_RABBITMQ.close()

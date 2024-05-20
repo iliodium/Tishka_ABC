@@ -10,16 +10,11 @@ import gspread
 import pika
 from airflow.models import DAG
 from airflow.operators.python import PythonOperator
-# from dotenv import load_dotenv
-#
-# load_dotenv('../.env')
-# load_dotenv('../../envs/.env.rabbitmq_dns')
-# load_dotenv('../../envs/.env.rabbitmq_user_log_pass')
+
 RABBITMQ_USERNAME = environ['RABBITMQ_USERNAME']
 RABBITMQ_PASSWORD = environ['RABBITMQ_PASSWORD']
 RABBITMQ_DNS = environ['RABBITMQ_DNS']
 KEY = environ['GOOGLESHEET_KEY']
-# RABBITMQ_DNS = '172.21.0.2'
 
 url_to_price_sheet = f'https://docs.google.com/spreadsheets/d/{KEY}'
 
@@ -39,16 +34,16 @@ VENDORCODES_UNION = []  # глобальная переменная для вс�
 
 
 class SaleDay(StrEnum):
-    day_7 = '7 день продаж наступил у:'
-    day_14 = '14 день продаж наступил у:'
-    day_21 = '21 день продаж наступил у:'
-    day_28 = '28 день продаж наступил у:'
+    day_7 = '7 день продаж'
+    day_14 = '14 день продаж'
+    day_21 = '21 день продаж'
+    day_28 = '28 день продаж'
 
 
 class ChangeABC(StrEnum):
-    change_category = 'Поменялась категория:'
-    empty_remains = 'Закончились остатки:'
-    abc_change = 'У этих товаров поменялась категория:'
+    change_category = 'Поменялась категория'
+    empty_remains = 'Закончились остатки'
+    abc_change = 'У этих товаров поменялась категория'
 
 
 class GooglesheetWorksheet(StrEnum):
@@ -75,7 +70,7 @@ class TempText(StrEnum):
 
     nmid_seller = 'Артикул продавца'
     recommended_price = 'Рекомендованная цена'
-    reason = 'Причина'
+    reason_price_change = 'Причина изменения цены'
     decision_accept = 'Решение принято'
     price_updated = 'Цена выгружена'
     no = 'Нет'
@@ -158,17 +153,18 @@ def get_vendor_codes_by_period(nmids):
 
 def get_message(vendor_codes):
     headers_message = [
-        f'{SaleDay.day_7}\n',
-        f'{SaleDay.day_14}\n',
-        f'{SaleDay.day_21}\n',
-        f'{SaleDay.day_28}\n',
+        f'{SaleDay.day_7}',
+        f'{SaleDay.day_14}',
+        f'{SaleDay.day_21}',
+        f'{SaleDay.day_28}',
     ]
 
     message = ''
 
     for head, vend in zip(headers_message, vendor_codes):
         if vend:
-            message += f'<b>{head}</b>' + '\n'.join(vend) + '\n' + '\n'
+            message += f'<b>{head} наступил у:</b>\n' + '\n'.join(vend) + '\n' + '\n'
+
     sheet_ABC = FILE.worksheet("ABC")
     reasons = [
         (ChangeABC.change_category, []),
@@ -182,7 +178,7 @@ def get_message(vendor_codes):
 
     for i in reasons:
         if i[1]:
-            message += f'<b>{i[0]}</b>\n' + '\n'.join(i[1]) + '\n' + '\n'
+            message += f'<b>{i[0]}:</b>\n' + '\n'.join(i[1]) + '\n' + '\n'
 
     change_abc_ven = []
     for ven, abc_1, abc_2, reason in zip(sheet_ABC.col_values(1)[1:],
@@ -193,7 +189,7 @@ def get_message(vendor_codes):
             change_abc_ven.append(ven)
 
     if change_abc_ven:
-        message += f'<b>{ChangeABC.abc_change}</b>\n' + '\n'.join(change_abc_ven) + '\n' + '\n'
+        message += f'<b>{ChangeABC.abc_change}:</b>\n' + '\n'.join(change_abc_ven) + '\n' + '\n'
 
     return message + url_to_price_sheet if message else 'Дни продаж не наступили'
 
@@ -327,10 +323,20 @@ def write_categories_to_google_sheet(categories, vendorCode_dict):
         TempText.abc_today,
         TempText.abc_now,
         TempText.recommended_price,
-        TempText.reason,
+        TempText.reason_price_change,
     ]
 
     rec_price_func = lambda prime_cost, logistics, kosti, margin: (prime_cost + logistics + kosti) / (0.69 - margin)
+
+    len_headers = len(headers)
+    len_headers_m = len_headers - 1
+
+    list_ABC = sheet_ABC.get_all_values()[1:]
+    dict_ABC = {i[0]: i for i in list_ABC if i[0] in VENDORCODES_UNION}
+
+    for vendor_code in VENDORCODES_UNION:
+        if not vendor_code in dict_ABC:
+            dict_ABC[vendor_code] = [vendor_code] + [None] * len_headers_m
 
     category_margin = {
         'BC10': 0.1,
@@ -340,16 +346,13 @@ def write_categories_to_google_sheet(categories, vendorCode_dict):
         'B': 0.3,
         'C': 0.1
     }
-    len_headers = len(headers)
-    len_headers_m = len_headers - 1
 
-    list_ABC = sheet_ABC.get_all_values()[1:]
-    dict_ABC = {i[0]: i for i in list_ABC if i[0] in VENDORCODES_UNION}
-
-    for ven in VENDORCODES_UNION:
-        if not ven in dict_ABC:
-            dict_ABC[ven] = [ven] + [None] * len_headers_m
-
+    sale_day_reason = [
+        SaleDay.day_7,
+        SaleDay.day_14,
+        SaleDay.day_21,
+        SaleDay.day_28,
+    ]
     for ind, lst in enumerate2(categories[:-1], start=1, step=2):
         for vendor_code in lst:
             category = lst[vendor_code]
@@ -364,28 +367,25 @@ def write_categories_to_google_sheet(categories, vendorCode_dict):
 
             if rec_price is not None:
                 dict_ABC[vendor_code][ind + 1] = round_price(rec_price)
+
+            dict_ABC[vendor_code][12] = sale_day_reason[ind // 2]
+
     # 28+
     category = categories[-1]
-    for ven in category.keys():
-        if dict_ABC[ven][9] == '':
-            dict_ABC[ven][9] = category[ven]['category']
-            dict_ABC[ven][10] = category[ven]['category']
+    for vendor_code in category.keys():
+        if dict_ABC[vendor_code][9] == '':
+            dict_ABC[vendor_code][9] = category[vendor_code]['category']
+            dict_ABC[vendor_code][10] = category[vendor_code]['category']
         else:
-            dict_ABC[ven][9] = dict_ABC[ven][10]
-            dict_ABC[ven][10] = category[ven]['category']
-            # if dict_ABC[ven][9] != dict_ABC[ven][10]:
-            #     sheet_ABC.format(f'F{ind}', {
-            #         "backgroundColor": {
-            #             "red": 1,
-            #             "green": 0,
-            #             "blue": 0
-            #         }})
-            dict_ABC[ven][11] = round_price(rec_price_func(vendorCode_dict[ven]['prime_cost'],
-                                                           vendorCode_dict[ven]['logistics'],
-                                                           vendorCode_dict[ven]['kosti'],
-                                                           category[ven]['price'])) if category[ven].get(
+            dict_ABC[vendor_code][9] = dict_ABC[vendor_code][10]
+            dict_ABC[vendor_code][10] = category[vendor_code]['category']
+            dict_ABC[vendor_code][11] = round_price(rec_price_func(vendorCode_dict[vendor_code]['prime_cost'],
+                                                                   vendorCode_dict[vendor_code]['logistics'],
+                                                                   vendorCode_dict[vendor_code]['kosti'],
+                                                                   category[vendor_code]['price'])) if category[
+                vendor_code].get(
                 'price') else ''
-            dict_ABC[ven][12] = category[ven]['message'] if category[ven].get('message') else ''
+            dict_ABC[vendor_code][12] = category[vendor_code]['message'] if category[vendor_code].get('message') else ''
 
     sheet_ABC.clear()
     sheet_ABC.resize(len(VENDORCODES_UNION) + 1, len_headers)
@@ -488,7 +488,7 @@ def calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_by_period)
                     categories[ven] = {
                         'category': 'A',
                         'price': 0.4,
-                        'message': 'Поменялась категория'
+                        'message': ChangeABC.change_category
                     }
             elif ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']['ABC_EBITDA_28PLUS_B']:
                 if categories_by_period['28plus_previous'][ven] == 'B':
@@ -498,12 +498,12 @@ def calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_by_period)
                         'ABC_TURNOVER_28PLUS_B']:
                         categories[ven] = {
                             'price': 0.4,
-                            'message': 'Закончились остатки'
+                            'message': ChangeABC.empty_remains
                         }
                     else:
                         categories[ven] = {
                             'price': 0.3,
-                            'message': 'Поменялась категория'
+                            'message': ChangeABC.change_category
                         }
                     categories[ven]['category'] = 'B'
 
@@ -515,13 +515,13 @@ def calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_by_period)
                 categories[ven] = {
                     'category': 'C',
                     'price': 0.3,
-                    'message': 'Закончились остатки'
+                    'message': ChangeABC.empty_remains
                 }
             else:
                 categories[ven] = {
                     'category': 'C',
                     'price': 0.1,
-                    'message': 'Поменялась категория'
+                    'message': ChangeABC.change_category
                 }
 
         return categories
@@ -550,6 +550,7 @@ def write_recommended_price_to_sheet(vendor_codes_by_period, vendorCode_dict):
             'recommended_price_21': i[6],
             28: i[7],
             'recommended_price_28': i[8],
+            'reason': i[12],
         }
         for i in list_ABC
     }
@@ -568,6 +569,7 @@ def write_recommended_price_to_sheet(vendor_codes_by_period, vendorCode_dict):
         TempText.current_price,
         TempText.recommended_price,
         TempText.new_price,
+        TempText.reason_price_change
     ]
 
     sheet.clear()
@@ -586,6 +588,8 @@ def write_recommended_price_to_sheet(vendor_codes_by_period, vendorCode_dict):
             row.append(dict_ABC[ven][week])
             row.append(vendorCode_dict[ven]['price'])
             row.append(dict_ABC[ven][f'recommended_price_{week}'])
+            row.append('')
+            row.append(dict_ABC[ven]['reason'])
 
             data.append(row)
 
@@ -597,7 +601,7 @@ def write_recommended_price_to_sheet(vendor_codes_by_period, vendorCode_dict):
             sheet_ABC.col_values(13)[1:],
     ):
         if reason:
-            data.append([ven, prev_abc, cur_abc, vendorCode_dict[ven]['price'], rec_price])
+            data.append([ven, prev_abc, cur_abc, vendorCode_dict[ven]['price'], rec_price, '', reason])
 
     sheet.resize(len(data) + 3, len(headers_2))
     sheet.update(range_name='A1', values=[headers_1])
