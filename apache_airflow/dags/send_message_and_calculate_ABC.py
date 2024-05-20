@@ -483,7 +483,7 @@ def calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_by_period)
                 categories[ven] = {'category': ABC_28([ven])[ven]}
             elif ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']['ABC_EBITDA_28PLUS_A']:
                 if categories_by_period['28plus_previous'][ven] == 'A':
-                    categories[ven] = {'category': ABC_28([ven])[ven]}
+                    categories[ven] = {'category': 'A'}
                 else:
                     categories[ven] = {
                         'category': 'A',
@@ -492,7 +492,7 @@ def calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_by_period)
                     }
             elif ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']['ABC_EBITDA_28PLUS_B']:
                 if categories_by_period['28plus_previous'][ven] == 'B':
-                    categories[ven] = {'category': ABC_28([ven])[ven]}
+                    categories[ven] = {'category': 'B'}
                 else:
                     if categories_by_period['28plus_previous'][ven] == 'A' and turnover[ven] <= CONFIG_ABC['TURNOVER'][
                         'ABC_TURNOVER_28PLUS_B']:
