@@ -1,13 +1,12 @@
 import os
 import time
 from datetime import timedelta, datetime, date
+
 import gspread
 import pika
 import requests
-from airflow.models import DAG
-from airflow.operators.python import PythonOperator
 
-KEY_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'abc-dev-415713-a2a407ac569b.json')
+KEY_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), './../abc-dev-415713-a2a407ac569b.json')
 
 KEY = os.environ['GOOGLESHEET_KEY']
 
@@ -21,12 +20,8 @@ RABBITMQ_PASSWORD = os.environ['RABBITMQ_PASSWORD']
 RABBITMQ_DNS = os.environ['RABBITMQ_DNS']
 
 token_wb = os.environ['TOKEN_WB']
-token_mpstat = os.environ['TOKEN_MPSTAT']
 
-headers_temp_mpstat = lambda token: {
-    "Content-Type": "application/json",
-    "X-Mpstats-TOKEN": token,
-}
+TIME_SLEEP = 1
 
 headers_temp_wb = lambda token: {
     "Content-Type": "application/json",
@@ -46,18 +41,16 @@ request_body_temp = lambda nmids_list, begin, end: {
 url_temp_report: str = 'https://seller-analytics-api.wildberries.ru/api/v2/nm-report/detail/history'
 url_temp_stocks: str = 'https://statistics-api.wildberries.ru/api/v1/supplier/stocks?dateFrom={}'
 
-# year month day
-url_temp_mpstat: str = 'https://mpstats.io/api/wb/get/seller?d1={}&d2={}&path={}'
-
 
 def get_history(nmids_list: list[int], date_from: str, date_to: str):
     request_body = request_body_temp(nmids_list, date_from, date_to)
     headers = headers_temp_wb(token_wb)
-
     request = requests.post(url_temp_report, headers=headers, json=request_body)
-    while request.status_code in (400, 403, 429, 500):
+    while request.status_code != 200:
+        if request.status_code == 400:
+            raise Exception
         request = requests.post(url_temp_report, headers=headers, json=request_body)
-        time.sleep(0.2)
+        time.sleep(TIME_SLEEP)
 
     rq = request.json()
     data = {}
@@ -83,9 +76,9 @@ def get_stocks():
     url = url_temp_stocks.format(datetime.strftime(datetime.now(), "%Y-%m-%dT"))
     headers = headers_temp_wb(token_wb)
     request = requests.get(url, headers=headers)
-    while request.status_code in (400, 403, 429, 500):
+    while request.status_code != 200:
         request = requests.get(url, headers=headers)
-        time.sleep(0.2)
+        time.sleep(TIME_SLEEP)
 
     rj = request.json()
     d = {k['nmId']: 0 for k in rj}
@@ -177,97 +170,29 @@ def get_dates():
     return str_df_c, str_dt_c, str_df_p, str_dt_p
 
 
-def get_nmids_list():
-    sheet_nmids = FILE.worksheet('Артикулы')
-    return list(map(int, sheet_nmids.col_values(1)))
+def write_to_google_sheet(data):
+    sheet_headers = [
+        'Артикул продавца',
+        'Номенклатура',
+        'Заказали, шт',
+        'Заказали, шт (предыдущий период)',
+        'Выкупили, шт',
+        'Выкупы, шт (предыдущий период)',
+        'Процент выкупа',
+        'Процент выкупа (предыдущий период)',
+        'Заказали на сумму, руб',
+        'Заказали на сумму, руб (предыдущий период)',
+        'Средняя цена, руб',
+        'Средняя цена, руб (предыдущий период)',
+        'Остатки склад, шт',
+    ]
 
-
-def write_to_google_sheet(api: str, data):
-    if api == 'wb':
-        sheet_headers = [
-            'Артикул продавца',
-            'Номенклатура',
-            'Заказали, шт',
-            'Заказали, шт (предыдущий период)',
-            'Выкупили, шт',
-            'Выкупы, шт (предыдущий период)',
-            'Процент выкупа',
-            'Процент выкупа (предыдущий период)',
-            'Заказали на сумму, руб',
-            'Заказали на сумму, руб (предыдущий период)',
-            'Средняя цена, руб',
-            'Средняя цена, руб (предыдущий период)',
-            'Остатки склад, шт',
-        ]
-        sheet = FILE.worksheet("Выгрузка К")
-    elif api == 'mpstat':
-        sheet_headers = [
-            'id',
-            'thumb',
-            'start_price',
-            'final_price',
-            'sku_first_date',
-        ]
-        sheet = FILE.worksheet("Выгрузка МПСТАТС")
-
+    sheet = FILE.worksheet("Выгрузка К")
     sheet.clear()
     sheet.resize(len(data) + 1, len(sheet_headers))
 
     sheet.update(range_name='A1', values=[sheet_headers])
     sheet.update(range_name='A2', values=data)
-
-
-def write_data_from_wb(nmids_list) -> None:
-    df_c, dt_c, df_p, dt_p = get_dates()
-
-    data_all_nmids_current = {}
-    data_all_nmids_previous = {}
-
-    for nmids in batch(nmids_list, 20):
-        data_all_nmids_current.update(get_history(nmids, df_c, dt_c))
-        data_all_nmids_previous.update(get_history(nmids, df_p, dt_p))
-
-    data = transform_data(nmids_list, data_all_nmids_current, data_all_nmids_previous)
-
-    write_to_google_sheet('wb', data)
-
-
-def write_data_from_mpstat_and_get_nmids() -> list:
-    seller_name = 'Tiшka'
-    request_body = {
-        'startRow': 0,
-        'endRow': 5000,
-        'filterModel': {},
-        'sortModel': [],
-    }
-
-    df_c, dt_c, df_p, dt_p = get_dates()
-
-    url = url_temp_mpstat.format(df_c, dt_c, seller_name)
-
-    request = requests.post(url, headers=headers_temp_mpstat(token_mpstat), json=request_body)
-    while request.status_code in (202, 429, 500):
-        request = requests.post(url, headers=headers_temp_mpstat(token_mpstat), json=request_body)
-
-        time.sleep(0.2)
-
-    r = request.json()
-
-    nmids = []
-    to_sheet = []
-    for data in r['data']:
-        nmids.append(data['id'])
-
-        to_sheet.append([])
-        to_sheet[-1].append(data['id'])
-        to_sheet[-1].append('https:' + data['thumb'])
-        to_sheet[-1].append(data['start_price'])
-        to_sheet[-1].append(data['final_price'])
-        to_sheet[-1].append(data['sku_first_date'])
-
-    write_to_google_sheet('mpstat', to_sheet)
-
-    return nmids
 
 
 def send_message_to_queue(message):
@@ -283,35 +208,26 @@ def send_message_to_queue(message):
     connection.close()
 
 
-def start_dag():
+def get_data_from_wb(nmids_list):
+    df_c, dt_c, df_p, dt_p = get_dates()
+
+    data_all_nmids_current = {}
+    data_all_nmids_previous = {}
+
+    for nmids in batch(nmids_list, 20):
+        data_all_nmids_current.update(get_history(nmids, df_c, dt_c))
+        data_all_nmids_previous.update(get_history(nmids, df_p, dt_p))
+
+    return data_all_nmids_current, data_all_nmids_previous
+
+
+def main(nmids):
     try:
-        nmids = write_data_from_mpstat_and_get_nmids()
-        write_data_from_wb(nmids)
+        data_all_nmids_current, data_all_nmids_previous = get_data_from_wb(nmids)
+        data = transform_data(nmids, data_all_nmids_current, data_all_nmids_previous)
+        write_to_google_sheet(data)
 
-        send_message_to_queue('Сбор данных прошел успешно')
+        send_message_to_queue('Сбор данных с wb прошел успешно')
     except Exception as e:
-        send_message_to_queue('Ошибка при сборе данных')
+        send_message_to_queue('Ошибка при сборе данных с wb')
         raise Exception
-
-
-default_args = {
-    'owner': 'airflow',
-    'start_date': datetime(2024, 5, 18),
-}
-
-with DAG(dag_id='parsing_wb_mpstat',
-         schedule='0 6 * * *',
-         default_args=default_args,
-         ) as dag:
-    dice = PythonOperator(
-        task_id='parsing_wb_mpstat',
-        python_callable=start_dag,
-        dag=dag,
-        retries=5,
-        retry_delay=timedelta(minutes=1),
-        max_retry_delay=timedelta(minutes=3),
-        retry_exponential_backoff=True
-    )
-
-if __name__ == '__main__':
-    start_dag()

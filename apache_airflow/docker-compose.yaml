@@ -54,6 +54,7 @@ x-airflow-common:
   env_file:
     - ~/tishka/envs/.env.rabbitmq_user_log_pass
     - ~/tishka/envs/.env.rabbitmq_dns
+    - .env
 
 
   environment:
@@ -80,13 +81,6 @@ x-airflow-common:
     # The following line can be used to set a custom config file, stored in the local config folder
     # If you want to use it, outcomment it and replace airflow.cfg with the name of your config file
     # AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
-
-    # Tishka variables
-    TOKEN_WB: ${TOKEN_WB}
-    TOKEN_WB_PRICE: ${TOKEN_WB_PRICE}
-    TOKEN_MPSTAT: ${TOKEN_MPSTAT}
-
-    GOOGLESHEET_KEY: ${GOOGLESHEET_KEY}
 
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
