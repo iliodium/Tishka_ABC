@@ -15,12 +15,18 @@ from aiogram.fsm.state import StatesGroup, State
 
 import keyboards as kb
 
+# from dotenv import load_dotenv
+#
+# load_dotenv()
+# load_dotenv('../envs/.env.rabbitmq_dns')
+# load_dotenv('../envs/.env.rabbitmq_user_log_pass')
+
 TOKEN = os.environ['TG_BOT_TOKEN']
 ID_CHAT = os.environ['TG_BOT_ID_CHAT']
 RABBITMQ_USERNAME = os.environ['RABBITMQ_USERNAME']
 RABBITMQ_PASSWORD = os.environ['RABBITMQ_PASSWORD']
 RABBITMQ_DNS = os.environ['RABBITMQ_DNS']
-
+# RABBITMQ_DNS = '172.21.0.2'
 RABBITMQ_URL = f"amqp://{RABBITMQ_USERNAME}:{RABBITMQ_PASSWORD}@{RABBITMQ_DNS}/"
 
 bot = Bot(TOKEN)
@@ -154,8 +160,15 @@ async def user_action(message: types.Message):
     await message.answer(answer)
 
 
+# from aiogram.types import InputFile
+# from aiogram.types import FSInputFile
+
+
 async def send_message(message):
     await bot.send_message(ID_CHAT, message, parse_mode="HTML")
+    # with open('../audio_2024-05-21_22-36-53.ogg', 'rb') as audio_file:
+    # audio_input = FSInputFile('../audio_2024-05-21_22-36-53.ogg')
+    # await bot.send_voice(ID_CHAT, audio_input)
 
 
 async def run_rabbitmq(loop):
@@ -177,9 +190,14 @@ async def run_rabbitmq(loop):
             # Cancel consuming after __aexit__
             async for message in queue_iter:
                 async with message.process():
-                    await send_message(message.body)
+                    body = message.body
+                    try:
+                        text = body.decode()
+                        await send_message(text)
+                    except Exception as e:
+                        print(e)
 
-                    if queue.name in message.body.decode():
+                    if queue.name in body.decode():
                         break
 
 
