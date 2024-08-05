@@ -32,7 +32,6 @@ with DAG(dag_id='parsing_wb_mpstats',
     def get_nmids_and_run_parsing_wb(**kwargs):
         ti = kwargs['ti']
         result = ti.xcom_pull(task_ids='parsing_mpstats')
-
         return main_wb(nmids=result['nmids'])
 
 

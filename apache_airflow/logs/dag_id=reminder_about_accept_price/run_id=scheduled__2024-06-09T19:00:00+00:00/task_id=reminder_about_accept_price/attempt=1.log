@@ -1,0 +1,20 @@
+[2024-06-09T20:00:04.440+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-06-09T20:00:04.562+0000] {taskinstance.py:2073} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: reminder_about_accept_price.reminder_about_accept_price scheduled__2024-06-09T19:00:00+00:00 [queued]>
+[2024-06-09T20:00:04.593+0000] {taskinstance.py:2073} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: reminder_about_accept_price.reminder_about_accept_price scheduled__2024-06-09T19:00:00+00:00 [queued]>
+[2024-06-09T20:00:04.596+0000] {taskinstance.py:2303} INFO - Starting attempt 1 of 1
+[2024-06-09T20:00:04.654+0000] {taskinstance.py:2327} INFO - Executing <Task(PythonOperator): reminder_about_accept_price> on 2024-06-09 19:00:00+00:00
+[2024-06-09T20:00:04.682+0000] {warnings.py:110} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:61: DeprecationWarning: This process (pid=89296) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-06-09T20:00:04.684+0000] {standard_task_runner.py:63} INFO - Started process 89297 to run task
+[2024-06-09T20:00:04.680+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'reminder_about_accept_price', 'reminder_about_accept_price', 'scheduled__2024-06-09T19:00:00+00:00', '--job-id', '1324', '--raw', '--subdir', 'DAGS_FOLDER/reminder_about_accept_price.py', '--cfg-path', '/tmp/tmp72tratxq']
+[2024-06-09T20:00:04.685+0000] {standard_task_runner.py:91} INFO - Job 1324: Subtask reminder_about_accept_price
+[2024-06-09T20:00:04.958+0000] {task_command.py:426} INFO - Running <TaskInstance: reminder_about_accept_price.reminder_about_accept_price scheduled__2024-06-09T19:00:00+00:00 [running]> on host d40bdb4a74ef
+[2024-06-09T20:00:05.347+0000] {taskinstance.py:2644} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='reminder_about_accept_price' AIRFLOW_CTX_TASK_ID='reminder_about_accept_price' AIRFLOW_CTX_EXECUTION_DATE='2024-06-09T19:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-06-09T19:00:00+00:00'
+[2024-06-09T20:00:05.357+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-06-09T20:00:05.848+0000] {python.py:237} INFO - Done. Returned value was: None
+[2024-06-09T20:00:05.850+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-06-09T20:00:05.909+0000] {taskinstance.py:1205} INFO - Marking task as SUCCESS. dag_id=reminder_about_accept_price, task_id=reminder_about_accept_price, execution_date=20240609T190000, start_date=20240609T200004, end_date=20240609T200005
+[2024-06-09T20:00:06.002+0000] {local_task_job_runner.py:240} INFO - Task exited with return code 0
+[2024-06-09T20:00:06.065+0000] {taskinstance.py:3482} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-06-09T20:00:06.070+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

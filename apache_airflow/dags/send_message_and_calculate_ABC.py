@@ -130,13 +130,26 @@ def get_vendor_codes_by_period(nmids):
         [],  # 28+
     ]
 
-    current_date = date.today() - timedelta(days=2)
+    current_date = date.today()# - timedelta(days=2)
 
     date_pattern = "%Y-%m-%d"
     for i in nmids.values():
-
         vendor_date = datetime.strptime(i['sku_first_date'], date_pattern).date()
-        dt = (current_date - vendor_date).days
+        print(i['vendorCode'])
+        if i['vendorCode'] in (
+            'K.Ts.McQueen/Black.01/',
+            'K.Ts.Cult/Black.01/',
+            'K.Ts.Threecats/Black.01/',
+            'K.Ts.Bunnies/Black.01/',
+            'K.Ts.Auto/Black.01/'
+        ):
+            dt = (current_date - vendor_date + timedelta(days=1)).days
+            print(dt)
+
+        else:
+            dt = (current_date - vendor_date).days
+            print(dt, 'else')
+
         if dt == 7:
             vendor_codes[0].append(i["vendorCode"])
         elif dt == 14:
@@ -442,7 +455,7 @@ def calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_by_period)
                 categories[ven] = 'A'
             elif ebitda_per_day[ven] >= CONFIG_ABC['EBITDA']["ABC_EBITDA_14_B"]:
                 categories[ven] = 'B'
-            elif turnover[ven] <= CONFIG_ABC['EBITDA']["ABC_TURNOVER_14"]:
+            elif turnover[ven] <= CONFIG_ABC['TURNOVER']["ABC_TURNOVER_14"]:
                 categories[ven] = 'BC30'
             else:
                 categories[ven] = 'BC10'
@@ -636,6 +649,7 @@ def main():
 
 
 def start_dag():
+    print("##################")
     main()
     CONNECTION_RABBITMQ.close()
 

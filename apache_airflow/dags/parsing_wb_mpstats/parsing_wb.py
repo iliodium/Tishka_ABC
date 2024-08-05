@@ -1,8 +1,12 @@
 import os
 import time
+import uuid
+import zipfile
 from datetime import timedelta, datetime, date
+from io import BytesIO
 
 import gspread
+import pandas as pd
 import pika
 import requests
 
@@ -11,6 +15,7 @@ KEY_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), './../abc-de
 KEY = os.environ['GOOGLESHEET_KEY']
 
 url_to_price_sheet = f'https://docs.google.com/spreadsheets/d/{KEY}'
+url_generate_report = 'https://seller-analytics-api.wildberries.ru/api/v2/nm-report/downloads'
 
 GC = gspread.service_account(KEY_PATH)
 FILE = GC.open_by_key(KEY)
@@ -27,6 +32,7 @@ headers_temp_wb = lambda token: {
     "Content-Type": "application/json",
     "Authorization": token,
 }
+HEADERS = headers_temp_wb(token_wb)
 
 request_body_temp = lambda nmids_list, begin, end: {
     "nmIDs": nmids_list,
@@ -38,21 +44,57 @@ request_body_temp = lambda nmids_list, begin, end: {
     "aggregationLevel": "day"
 }
 
+request_body_generate_report = lambda uuid_report, nmids_list, startDate, endDate: {
+    'id': uuid_report,
+    'reportType': 'DETAIL_HISTORY_REPORT',
+    'params': {
+        'nmIDs': nmids_list,
+        'startDate': startDate,
+        'endDate': endDate,
+        'timezone': 'Europe/Moscow',
+        'aggregationLevel': 'day',
+        "skipDeletedNm": True
+    }
+}
+
 url_temp_report: str = 'https://seller-analytics-api.wildberries.ru/api/v2/nm-report/detail/history'
 url_temp_stocks: str = 'https://statistics-api.wildberries.ru/api/v1/supplier/stocks?dateFrom={}'
 
 
+def make_request_to_wb(url: str, method: str, json: dict = dict()):
+    method = {
+        'GET': requests.get,
+        'POST': requests.post,
+    }[method]
+
+    response = method(url, headers=HEADERS, json=json)
+    if response.status_code not in (200, 429, 500):
+        raise Exception(response, response.content)
+    else:
+        while response.status_code in (429, 500):
+            if response.status_code not in (429, 500):
+                raise Exception(response, response.content)
+            response = method(url, headers=HEADERS, json=json)
+            time.sleep(TIME_SLEEP)
+
+    return response
+
+
+# старый метод, использовался до джема
 def get_history(nmids_list: list[int], date_from: str, date_to: str):
     request_body = request_body_temp(nmids_list, date_from, date_to)
-    headers = headers_temp_wb(token_wb)
-    request = requests.post(url_temp_report, headers=headers, json=request_body)
-    while request.status_code != 200:
-        if request.status_code == 400:
-            raise Exception
-        request = requests.post(url_temp_report, headers=headers, json=request_body)
-        time.sleep(TIME_SLEEP)
+    response = make_request_to_wb(url_temp_report, 'POST', request_body)
+    # response = requests.post(url_temp_report, headers=HEADERS, json=request_body)
+    # if response.status_code not in (200, 429, 500):
+    #     raise Exception
+    # else:
+    #     while response.status_code in (429, 500):
+    #         if response.status_code not in (429, 500):
+    #             raise Exception
+    #         response = requests.post(url_temp_report, headers=HEADERS, json=request_body)
+    #         time.sleep(TIME_SLEEP)
 
-    rq = request.json()
+    rq = response.json()
     data = {}
     for i in rq['data']:
         data[i['nmID']] = {
@@ -73,14 +115,21 @@ def batch(iterable, batch_size=1):
 def get_stocks():
     # "%Y-%m-%dT%H:%M:%S"
 
-    url = url_temp_stocks.format(datetime.strftime(datetime.now(), "%Y-%m-%dT"))
-    headers = headers_temp_wb(token_wb)
-    request = requests.get(url, headers=headers)
-    while request.status_code != 200:
-        request = requests.get(url, headers=headers)
-        time.sleep(TIME_SLEEP)
+    url = url_temp_stocks.format(datetime.strftime(datetime.now(), "%Y-%m-%d"))
 
-    rj = request.json()
+    response = make_request_to_wb(url, 'GET')
+
+    # response = requests.get(url, headers=HEADERS)
+    # if response.status_code not in (200, 429, 500):
+    #     raise Exception
+    # else:
+    #     while response.status_code in (429, 500):
+    #         if response.status_code not in (429, 500):
+    #             raise Exception
+    #         response = requests.get(url, headers=HEADERS)
+    #         time.sleep(TIME_SLEEP)
+
+    rj = response.json()
     d = {k['nmId']: 0 for k in rj}
     for stock in rj:
         d[stock['nmId']] += stock['quantity']
@@ -92,6 +141,10 @@ def transform_data(nmids_list, data_current, data_previous) -> list:
     stocks = get_stocks()
 
     for nmid in nmids_list:
+        # проверка на то есть ли товар в 2 неделях
+        # чтобы не было ошибок если товар продается только 1 неделю
+        if not (nmid in data_current and nmid in data_previous):
+            continue
         row = []
         row.append(data_current[nmid]['vendorCode'])
         row.append(nmid)
@@ -208,15 +261,99 @@ def send_message_to_queue(message):
     connection.close()
 
 
+# новый метод используется при работе с джемом
+def get_detail_history_report(nmids_list: list[int], date_from: str, date_to: str):
+    # проверка на то существует ли нужный отчет
+    uuid_report = None
+    response = make_request_to_wb(url_generate_report, 'GET').json()
+    data = response['data']
+    for report in data:
+        if report['startDate'] == date_from and report['endDate'] == date_to:
+            uuid_report = report['id']
+            break
+
+    if uuid_report is None:
+        uuid_report = str(uuid.uuid4())
+
+        request_body = request_body_generate_report(uuid_report, nmids_list, date_from, date_to)
+        response = make_request_to_wb(url_generate_report, 'POST', request_body).json()
+        if response['error']:
+            print(response['errorText'])
+            raise Exception
+        print(6)
+        print(url_generate_report)
+        flag = True
+        while flag:
+            print(8)
+            response = make_request_to_wb(url_generate_report, 'GET').json()
+            print(response)
+            if response['error']:
+                print(response['errorText'])
+                raise Exception
+            data = response['data']
+            for report in data:
+                if report['status'] == 'SUCCESS' and report['id'] == uuid_report:
+                    flag = False
+                    break
+            time.sleep(5)
+
+    print(7)
+    url = f'{url_generate_report}/file/{uuid_report}'
+    response = make_request_to_wb(url, 'GET')
+
+    zip_data = BytesIO(response.content)
+    # Открываю ZIP-архив
+    with zipfile.ZipFile(zip_data, 'r') as zip_ref:
+        # Получите список файлов в архиве
+        file_list = zip_ref.namelist()
+
+        csv_file_name = file_list[0]
+
+        # Читаю CSV файл в DataFrame
+        with zip_ref.open(csv_file_name) as csv_file:
+            df = pd.read_csv(csv_file)
+
+    data = {}
+    for index, row in df.iterrows():
+        nmid = row['nmID']
+        data_nmid = data.setdefault(nmid, {
+            'vendorCode': '',
+            'imtName': '',
+            'history': []
+        })
+        row = row.to_dict()
+        row.pop('nmID', None)
+        data_nmid['history'].append(row)
+
+    return data
+
+
 def get_data_from_wb(nmids_list):
     df_c, dt_c, df_p, dt_p = get_dates()
 
-    data_all_nmids_current = {}
-    data_all_nmids_previous = {}
-
+    # тк в джеме нет vendorCode и imtName получаю их из старого метода
+    history_for_vendorcode = {}
     for nmids in batch(nmids_list, 20):
-        data_all_nmids_current.update(get_history(nmids, df_c, dt_c))
-        data_all_nmids_previous.update(get_history(nmids, df_p, dt_p))
+        history_for_vendorcode.update(get_history(nmids, df_c, dt_c))
+    print(4)
+    data_all_nmids_previous = get_detail_history_report(nmids_list, df_p, dt_p)
+    data_all_nmids_current = get_detail_history_report(nmids_list, df_c, dt_c)
+    print(5)
+    print(data_all_nmids_previous)
+    print(data_all_nmids_current)
+    print(history_for_vendorcode)
+    for nmid, data in history_for_vendorcode.items():
+        if nmid in data_all_nmids_previous:
+            data_all_nmids_previous[nmid]['vendorCode'] = data['vendorCode']
+            data_all_nmids_previous[nmid]['imtName'] = data['imtName']
+
+        if nmid in data_all_nmids_current:
+            data_all_nmids_current[nmid]['vendorCode'] = data['vendorCode']
+            data_all_nmids_current[nmid]['imtName'] = data['imtName']
+
+    # for nmids in batch(nmids_list, 20):
+    #     data_all_nmids_current.update(get_history(nmids, df_c, dt_c))
+    #     data_all_nmids_previous.update(get_history(nmids, df_p, dt_p))
 
     return data_all_nmids_current, data_all_nmids_previous
 
@@ -224,7 +361,9 @@ def get_data_from_wb(nmids_list):
 def main(nmids):
     try:
         data_all_nmids_current, data_all_nmids_previous = get_data_from_wb(nmids)
+        print(1)
         data = transform_data(nmids, data_all_nmids_current, data_all_nmids_previous)
+        print(2)
         write_to_google_sheet(data)
 
         send_message_to_queue('Сбор данных с wb прошел успешно')

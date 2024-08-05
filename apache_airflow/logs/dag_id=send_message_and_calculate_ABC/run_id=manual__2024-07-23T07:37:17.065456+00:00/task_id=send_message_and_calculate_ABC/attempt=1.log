@@ -1,0 +1,348 @@
+[2024-07-23T07:37:18.799+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-07-23T07:37:18.830+0000] {taskinstance.py:2073} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: send_message_and_calculate_ABC.send_message_and_calculate_ABC manual__2024-07-23T07:37:17.065456+00:00 [queued]>
+[2024-07-23T07:37:18.839+0000] {taskinstance.py:2073} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: send_message_and_calculate_ABC.send_message_and_calculate_ABC manual__2024-07-23T07:37:17.065456+00:00 [queued]>
+[2024-07-23T07:37:18.839+0000] {taskinstance.py:2303} INFO - Starting attempt 1 of 6
+[2024-07-23T07:37:18.855+0000] {taskinstance.py:2327} INFO - Executing <Task(PythonOperator): send_message_and_calculate_ABC> on 2024-07-23 07:37:17.065456+00:00
+[2024-07-23T07:37:18.866+0000] {warnings.py:110} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:61: DeprecationWarning: This process (pid=151838) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-07-23T07:37:18.868+0000] {standard_task_runner.py:63} INFO - Started process 151840 to run task
+[2024-07-23T07:37:18.868+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'send_message_and_calculate_ABC', 'send_message_and_calculate_ABC', 'manual__2024-07-23T07:37:17.065456+00:00', '--job-id', '2686', '--raw', '--subdir', 'DAGS_FOLDER/send_message_and_calculate_ABC.py', '--cfg-path', '/tmp/tmpn02cp12q']
+[2024-07-23T07:37:18.869+0000] {standard_task_runner.py:91} INFO - Job 2686: Subtask send_message_and_calculate_ABC
+[2024-07-23T07:37:18.947+0000] {task_command.py:426} INFO - Running <TaskInstance: send_message_and_calculate_ABC.send_message_and_calculate_ABC manual__2024-07-23T07:37:17.065456+00:00 [running]> on host d40bdb4a74ef
+[2024-07-23T07:37:19.076+0000] {taskinstance.py:2644} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='send_message_and_calculate_ABC' AIRFLOW_CTX_TASK_ID='send_message_and_calculate_ABC' AIRFLOW_CTX_EXECUTION_DATE='2024-07-23T07:37:17.065456+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-07-23T07:37:17.065456+00:00'
+[2024-07-23T07:37:19.077+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-07-23T07:37:19.093+0000] {logging_mixin.py:188} INFO - ##################
+[2024-07-23T07:37:24.458+0000] {logging_mixin.py:188} INFO - K.Ts.BlackFaces/Khaki.01/
+[2024-07-23T07:37:24.459+0000] {logging_mixin.py:188} INFO - 296 else
+[2024-07-23T07:37:24.459+0000] {logging_mixin.py:188} INFO - К.ANM.01.Ts1501.0180/Black.01/
+[2024-07-23T07:37:24.459+0000] {logging_mixin.py:188} INFO - 1058 else
+[2024-07-23T07:37:24.459+0000] {logging_mixin.py:188} INFO - К.PVZ.01.Ts0901.0180/Black.07/
+[2024-07-23T07:37:24.459+0000] {logging_mixin.py:188} INFO - 1006 else
+[2024-07-23T07:37:24.460+0000] {logging_mixin.py:188} INFO - K.Ts.Cuties/Blue.01/
+[2024-07-23T07:37:24.460+0000] {logging_mixin.py:188} INFO - 38 else
+[2024-07-23T07:37:24.460+0000] {logging_mixin.py:188} INFO - K.Ts.MyFirstLove/Black.01/
+[2024-07-23T07:37:24.460+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.460+0000] {logging_mixin.py:188} INFO - K.Ts.BlancNp/D.Grey.01/
+[2024-07-23T07:37:24.460+0000] {logging_mixin.py:188} INFO - 300 else
+[2024-07-23T07:37:24.461+0000] {logging_mixin.py:188} INFO - K.Ts.RedLogo/Beige.01/
+[2024-07-23T07:37:24.461+0000] {logging_mixin.py:188} INFO - 300 else
+[2024-07-23T07:37:24.461+0000] {logging_mixin.py:188} INFO - К.RCK.10.Ts1502.0180/Black.01/
+[2024-07-23T07:37:24.461+0000] {logging_mixin.py:188} INFO - 988 else
+[2024-07-23T07:37:24.461+0000] {logging_mixin.py:188} INFO - K.Ts.Webslinger/Red.01/
+[2024-07-23T07:37:24.461+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.462+0000] {logging_mixin.py:188} INFO - K.LngReg.Disc/Red.01/
+[2024-07-23T07:37:24.462+0000] {logging_mixin.py:188} INFO - 171 else
+[2024-07-23T07:37:24.462+0000] {logging_mixin.py:188} INFO - K.LngReg.Kansas/White.01/
+[2024-07-23T07:37:24.462+0000] {logging_mixin.py:188} INFO - 290 else
+[2024-07-23T07:37:24.462+0000] {logging_mixin.py:188} INFO - K.TS.Skater/Red.01/
+[2024-07-23T07:37:24.462+0000] {logging_mixin.py:188} INFO - 241 else
+[2024-07-23T07:37:24.463+0000] {logging_mixin.py:188} INFO - K.LngReg.Opium/Black.01/
+[2024-07-23T07:37:24.463+0000] {logging_mixin.py:188} INFO - 171 else
+[2024-07-23T07:37:24.463+0000] {logging_mixin.py:188} INFO - K.LngReg.4Tune/White.01/
+[2024-07-23T07:37:24.463+0000] {logging_mixin.py:188} INFO - 308 else
+[2024-07-23T07:37:24.463+0000] {logging_mixin.py:188} INFO - K.Ts.CatMilf/Pink.01/
+[2024-07-23T07:37:24.463+0000] {logging_mixin.py:188} INFO - 52 else
+[2024-07-23T07:37:24.463+0000] {logging_mixin.py:188} INFO - K.LngReg.Tigry/Green.01/
+[2024-07-23T07:37:24.463+0000] {logging_mixin.py:188} INFO - 171 else
+[2024-07-23T07:37:24.464+0000] {logging_mixin.py:188} INFO - K.LngReg.NP/White.blue/
+[2024-07-23T07:37:24.464+0000] {logging_mixin.py:188} INFO - 239 else
+[2024-07-23T07:37:24.464+0000] {logging_mixin.py:188} INFO - K.LngReg.2K17/Red.01/
+[2024-07-23T07:37:24.464+0000] {logging_mixin.py:188} INFO - 171 else
+[2024-07-23T07:37:24.464+0000] {logging_mixin.py:188} INFO - К.TS.Shrexy/White.01/
+[2024-07-23T07:37:24.464+0000] {logging_mixin.py:188} INFO - 413 else
+[2024-07-23T07:37:24.464+0000] {logging_mixin.py:188} INFO - K.Ts.Reg.Np/White.Brown/
+[2024-07-23T07:37:24.465+0000] {logging_mixin.py:188} INFO - 26 else
+[2024-07-23T07:37:24.465+0000] {logging_mixin.py:188} INFO - K.LngReg.XnsStar/White.01/
+[2024-07-23T07:37:24.465+0000] {logging_mixin.py:188} INFO - 301 else
+[2024-07-23T07:37:24.465+0000] {logging_mixin.py:188} INFO - K.TS.BlackCat/Red.01/
+[2024-07-23T07:37:24.465+0000] {logging_mixin.py:188} INFO - 241 else
+[2024-07-23T07:37:24.465+0000] {logging_mixin.py:188} INFO - K.Ts.GTR/Blue.01/
+[2024-07-23T07:37:24.465+0000] {logging_mixin.py:188} INFO - 38 else
+[2024-07-23T07:37:24.466+0000] {logging_mixin.py:188} INFO - K.Ts.Auto/Black.01/
+[2024-07-23T07:37:24.466+0000] {logging_mixin.py:188} INFO - 14
+[2024-07-23T07:37:24.466+0000] {logging_mixin.py:188} INFO - K.HalfZip.FNP/Grey/
+[2024-07-23T07:37:24.466+0000] {logging_mixin.py:188} INFO - 234 else
+[2024-07-23T07:37:24.466+0000] {logging_mixin.py:188} INFO - K.HalfZip.FleeceNP/White/
+[2024-07-23T07:37:24.466+0000] {logging_mixin.py:188} INFO - 239 else
+[2024-07-23T07:37:24.466+0000] {logging_mixin.py:188} INFO - K.LngReg.NP/White/
+[2024-07-23T07:37:24.467+0000] {logging_mixin.py:188} INFO - 308 else
+[2024-07-23T07:37:24.467+0000] {logging_mixin.py:188} INFO - K.Ts.HateSchool/White.01/
+[2024-07-23T07:37:24.467+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.467+0000] {logging_mixin.py:188} INFO - K.LngReg.NP/Red.brown/
+[2024-07-23T07:37:24.467+0000] {logging_mixin.py:188} INFO - 241 else
+[2024-07-23T07:37:24.467+0000] {logging_mixin.py:188} INFO - K.Ts.Alimenti/Beige.01/
+[2024-07-23T07:37:24.467+0000] {logging_mixin.py:188} INFO - 286 else
+[2024-07-23T07:37:24.467+0000] {logging_mixin.py:188} INFO - K.LngReg.Olympics/Blue.01/
+[2024-07-23T07:37:24.468+0000] {logging_mixin.py:188} INFO - 171 else
+[2024-07-23T07:37:24.468+0000] {logging_mixin.py:188} INFO - K.Ts.Bunnies/Black.01/
+[2024-07-23T07:37:24.468+0000] {logging_mixin.py:188} INFO - 14
+[2024-07-23T07:37:24.468+0000] {logging_mixin.py:188} INFO - K.Ts.RokstarGIRL/Black.01/
+[2024-07-23T07:37:24.468+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.468+0000] {logging_mixin.py:188} INFO - К.TWO.01.Ts.Cats/Black.01/
+[2024-07-23T07:37:24.468+0000] {logging_mixin.py:188} INFO - 460 else
+[2024-07-23T07:37:24.469+0000] {logging_mixin.py:188} INFO - K.LngReg.Bunny/Red.01/
+[2024-07-23T07:37:24.469+0000] {logging_mixin.py:188} INFO - 171 else
+[2024-07-23T07:37:24.469+0000] {logging_mixin.py:188} INFO - K.Ts.Fawn/Light.Grey.01/
+[2024-07-23T07:37:24.469+0000] {logging_mixin.py:188} INFO - 80 else
+[2024-07-23T07:37:24.469+0000] {logging_mixin.py:188} INFO - K.Ts.NotInterested/Brown.01/
+[2024-07-23T07:37:24.469+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.469+0000] {logging_mixin.py:188} INFO - K.LngReg.MadeInAI/Grey.01/
+[2024-07-23T07:37:24.469+0000] {logging_mixin.py:188} INFO - 171 else
+[2024-07-23T07:37:24.470+0000] {logging_mixin.py:188} INFO - K.Ts.Cringe/Red.01/
+[2024-07-23T07:37:24.470+0000] {logging_mixin.py:188} INFO - 80 else
+[2024-07-23T07:37:24.470+0000] {logging_mixin.py:188} INFO - K.Ts.TishkaNeon/Grey.01/
+[2024-07-23T07:37:24.470+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.470+0000] {logging_mixin.py:188} INFO - K.Ts.IceCream/Yellow.01/
+[2024-07-23T07:37:24.470+0000] {logging_mixin.py:188} INFO - 51 else
+[2024-07-23T07:37:24.470+0000] {logging_mixin.py:188} INFO - K.Ts.McQueen/Black.01/
+[2024-07-23T07:37:24.470+0000] {logging_mixin.py:188} INFO - 14
+[2024-07-23T07:37:24.471+0000] {logging_mixin.py:188} INFO - К.PVZ.01.Ts0901.0180/Black.02/
+[2024-07-23T07:37:24.471+0000] {logging_mixin.py:188} INFO - 1091 else
+[2024-07-23T07:37:24.471+0000] {logging_mixin.py:188} INFO - K.Ts.WildEast/Grey.01/
+[2024-07-23T07:37:24.471+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.471+0000] {logging_mixin.py:188} INFO - K.Ts.WalkBro/Reaktiv.01/
+[2024-07-23T07:37:24.471+0000] {logging_mixin.py:188} INFO - 284 else
+[2024-07-23T07:37:24.471+0000] {logging_mixin.py:188} INFO - K.TS.Juise/Red.01/
+[2024-07-23T07:37:24.471+0000] {logging_mixin.py:188} INFO - 241 else
+[2024-07-23T07:37:24.472+0000] {logging_mixin.py:188} INFO - K.TS.Spitz/Red.01/
+[2024-07-23T07:37:24.472+0000] {logging_mixin.py:188} INFO - 241 else
+[2024-07-23T07:37:24.472+0000] {logging_mixin.py:188} INFO - K.Ts.Apologies/Black.01/
+[2024-07-23T07:37:24.472+0000] {logging_mixin.py:188} INFO - 147 else
+[2024-07-23T07:37:24.472+0000] {logging_mixin.py:188} INFO - K.Ts.Hustle/Brown.01/
+[2024-07-23T07:37:24.472+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.472+0000] {logging_mixin.py:188} INFO - K.LngReg.Soviet/Green.01/
+[2024-07-23T07:37:24.473+0000] {logging_mixin.py:188} INFO - 80 else
+[2024-07-23T07:37:24.473+0000] {logging_mixin.py:188} INFO - K.Ts.GrandmaGun/Khaki.01/
+[2024-07-23T07:37:24.473+0000] {logging_mixin.py:188} INFO - 296 else
+[2024-07-23T07:37:24.473+0000] {logging_mixin.py:188} INFO - K.Ts.Reg.Np/Black.White/
+[2024-07-23T07:37:24.473+0000] {logging_mixin.py:188} INFO - 26 else
+[2024-07-23T07:37:24.473+0000] {logging_mixin.py:188} INFO - K.Ts.Spyderman/Black.01/
+[2024-07-23T07:37:24.473+0000] {logging_mixin.py:188} INFO - 171 else
+[2024-07-23T07:37:24.474+0000] {logging_mixin.py:188} INFO - K.LngReg.Ptancise/White.01/
+[2024-07-23T07:37:24.474+0000] {logging_mixin.py:188} INFO - 300 else
+[2024-07-23T07:37:24.474+0000] {logging_mixin.py:188} INFO - K.Ts.TomJerry/Beige.01/
+[2024-07-23T07:37:24.474+0000] {logging_mixin.py:188} INFO - 300 else
+[2024-07-23T07:37:24.474+0000] {logging_mixin.py:188} INFO - K.Ts.Addiction/Grey.01/
+[2024-07-23T07:37:24.474+0000] {logging_mixin.py:188} INFO - 80 else
+[2024-07-23T07:37:24.474+0000] {logging_mixin.py:188} INFO - K.Ts.Wreath/Pink.01/
+[2024-07-23T07:37:24.474+0000] {logging_mixin.py:188} INFO - 52 else
+[2024-07-23T07:37:24.475+0000] {logging_mixin.py:188} INFO - К.TS.Porshe/White.01/
+[2024-07-23T07:37:24.475+0000] {logging_mixin.py:188} INFO - 413 else
+[2024-07-23T07:37:24.475+0000] {logging_mixin.py:188} INFO - К.MILF.01.Ts.Happy/Black.01/
+[2024-07-23T07:37:24.475+0000] {logging_mixin.py:188} INFO - 427 else
+[2024-07-23T07:37:24.475+0000] {logging_mixin.py:188} INFO - K.Ts.Cult/Black.01/
+[2024-07-23T07:37:24.475+0000] {logging_mixin.py:188} INFO - 14
+[2024-07-23T07:37:24.475+0000] {logging_mixin.py:188} INFO - K.LngReg.NP/Beige.red/
+[2024-07-23T07:37:24.475+0000] {logging_mixin.py:188} INFO - 248 else
+[2024-07-23T07:37:24.476+0000] {logging_mixin.py:188} INFO - K.HalfZip.FNP/D.Grey/
+[2024-07-23T07:37:24.476+0000] {logging_mixin.py:188} INFO - 231 else
+[2024-07-23T07:37:24.476+0000] {logging_mixin.py:188} INFO - K.HalfZip.FNP/Beige/
+[2024-07-23T07:37:24.476+0000] {logging_mixin.py:188} INFO - 231 else
+[2024-07-23T07:37:24.476+0000] {logging_mixin.py:188} INFO - K.LngReg.NP/Beige.brown/
+[2024-07-23T07:37:24.476+0000] {logging_mixin.py:188} INFO - 241 else
+[2024-07-23T07:37:24.476+0000] {logging_mixin.py:188} INFO - K.TS.Flowers/Red.01/
+[2024-07-23T07:37:24.476+0000] {logging_mixin.py:188} INFO - 241 else
+[2024-07-23T07:37:24.477+0000] {logging_mixin.py:188} INFO - K.LngReg.Face/Black.01/
+[2024-07-23T07:37:24.477+0000] {logging_mixin.py:188} INFO - 171 else
+[2024-07-23T07:37:24.477+0000] {logging_mixin.py:188} INFO - K.Ts.KissMe/White.01/
+[2024-07-23T07:37:24.477+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.477+0000] {logging_mixin.py:188} INFO - K.Ts.Maznya/Blue.01/
+[2024-07-23T07:37:24.478+0000] {logging_mixin.py:188} INFO - 239 else
+[2024-07-23T07:37:24.478+0000] {logging_mixin.py:188} INFO - K.Ts.CouldBe/Pink.01/
+[2024-07-23T07:37:24.478+0000] {logging_mixin.py:188} INFO - 52 else
+[2024-07-23T07:37:24.478+0000] {logging_mixin.py:188} INFO - K.Ts.Gravitation/Grey.01/
+[2024-07-23T07:37:24.478+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.478+0000] {logging_mixin.py:188} INFO - K.Ts.Bill/White.01/
+[2024-07-23T07:37:24.478+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.478+0000] {logging_mixin.py:188} INFO - K.Ts.RibsLove/Grey.01/
+[2024-07-23T07:37:24.479+0000] {logging_mixin.py:188} INFO - 80 else
+[2024-07-23T07:37:24.479+0000] {logging_mixin.py:188} INFO - K.Ts.Silvia/Blue.01/
+[2024-07-23T07:37:24.479+0000] {logging_mixin.py:188} INFO - 264 else
+[2024-07-23T07:37:24.479+0000] {logging_mixin.py:188} INFO - K.Ts.StarFace/Blue.01/
+[2024-07-23T07:37:24.479+0000] {logging_mixin.py:188} INFO - 264 else
+[2024-07-23T07:37:24.479+0000] {logging_mixin.py:188} INFO - K.LngReg.1970Shop/White.01/
+[2024-07-23T07:37:24.479+0000] {logging_mixin.py:188} INFO - 300 else
+[2024-07-23T07:37:24.479+0000] {logging_mixin.py:188} INFO - K.Ts.Zvezda/Blue.01/
+[2024-07-23T07:37:24.480+0000] {logging_mixin.py:188} INFO - 264 else
+[2024-07-23T07:37:24.480+0000] {logging_mixin.py:188} INFO - K.Ts.Metallica/Reaktiv.01/
+[2024-07-23T07:37:24.480+0000] {logging_mixin.py:188} INFO - 284 else
+[2024-07-23T07:37:24.480+0000] {logging_mixin.py:188} INFO - K.LngReg.Rally/Brown.01/
+[2024-07-23T07:37:24.480+0000] {logging_mixin.py:188} INFO - 171 else
+[2024-07-23T07:37:24.480+0000] {logging_mixin.py:188} INFO - K.LngReg.Formidable/Blue.01/
+[2024-07-23T07:37:24.480+0000] {logging_mixin.py:188} INFO - 271 else
+[2024-07-23T07:37:24.480+0000] {logging_mixin.py:188} INFO - K.Ts.MacMilf/White.01/
+[2024-07-23T07:37:24.481+0000] {logging_mixin.py:188} INFO - 80 else
+[2024-07-23T07:37:24.481+0000] {logging_mixin.py:188} INFO - K.Ts.NeedMoney/Black.01/
+[2024-07-23T07:37:24.481+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.481+0000] {logging_mixin.py:188} INFO - K.Ts.Stencil/Light.Grey.01/
+[2024-07-23T07:37:24.481+0000] {logging_mixin.py:188} INFO - 80 else
+[2024-07-23T07:37:24.481+0000] {logging_mixin.py:188} INFO - K.Ts.TourismSport/Red.01/
+[2024-07-23T07:37:24.481+0000] {logging_mixin.py:188} INFO - 147 else
+[2024-07-23T07:37:24.482+0000] {logging_mixin.py:188} INFO - K.LngReg.BlankNp/White/
+[2024-07-23T07:37:24.482+0000] {logging_mixin.py:188} INFO - 308 else
+[2024-07-23T07:37:24.482+0000] {logging_mixin.py:188} INFO - K.Ts.BestHoney/Blue.01/
+[2024-07-23T07:37:24.482+0000] {logging_mixin.py:188} INFO - 264 else
+[2024-07-23T07:37:24.482+0000] {logging_mixin.py:188} INFO - К.HH.01.Ts1502.0200/Black.01/
+[2024-07-23T07:37:24.482+0000] {logging_mixin.py:188} INFO - 1029 else
+[2024-07-23T07:37:24.483+0000] {logging_mixin.py:188} INFO - К.PVZ.01.Ts0901.0180/Black.08/
+[2024-07-23T07:37:24.483+0000] {logging_mixin.py:188} INFO - 988 else
+[2024-07-23T07:37:24.483+0000] {logging_mixin.py:188} INFO - K.Ts.Shadow/Black.01/
+[2024-07-23T07:37:24.483+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.483+0000] {logging_mixin.py:188} INFO - K.Ts.Vilian/Brown.01/
+[2024-07-23T07:37:24.483+0000] {logging_mixin.py:188} INFO - 147 else
+[2024-07-23T07:37:24.483+0000] {logging_mixin.py:188} INFO - K.LngReg.Spider/Black.Red/
+[2024-07-23T07:37:24.484+0000] {logging_mixin.py:188} INFO - 80 else
+[2024-07-23T07:37:24.484+0000] {logging_mixin.py:188} INFO - K.LngReg.NP/Graphite/
+[2024-07-23T07:37:24.484+0000] {logging_mixin.py:188} INFO - 248 else
+[2024-07-23T07:37:24.484+0000] {logging_mixin.py:188} INFO - K.LngReg.Dark/White.01/
+[2024-07-23T07:37:24.484+0000] {logging_mixin.py:188} INFO - 290 else
+[2024-07-23T07:37:24.484+0000] {logging_mixin.py:188} INFO - K.Ts.Kitticalreact/White.01/
+[2024-07-23T07:37:24.484+0000] {logging_mixin.py:188} INFO - 80 else
+[2024-07-23T07:37:24.485+0000] {logging_mixin.py:188} INFO - K.Ts.ScoofyDoo/Blue.01/
+[2024-07-23T07:37:24.485+0000] {logging_mixin.py:188} INFO - 38 else
+[2024-07-23T07:37:24.485+0000] {logging_mixin.py:188} INFO - K.LngReg.BlankNp/Black/
+[2024-07-23T07:37:24.485+0000] {logging_mixin.py:188} INFO - 308 else
+[2024-07-23T07:37:24.485+0000] {logging_mixin.py:188} INFO - K.Ts.Cutit/Yellow.01/
+[2024-07-23T07:37:24.485+0000] {logging_mixin.py:188} INFO - 52 else
+[2024-07-23T07:37:24.485+0000] {logging_mixin.py:188} INFO - K.Ts.TeddyBears/Brown.01/
+[2024-07-23T07:37:24.486+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.486+0000] {logging_mixin.py:188} INFO - K.LngReg.Tishka/Grey.01/
+[2024-07-23T07:37:24.486+0000] {logging_mixin.py:188} INFO - 171 else
+[2024-07-23T07:37:24.486+0000] {logging_mixin.py:188} INFO - K.Ts.Reg.Np/White.Violet/
+[2024-07-23T07:37:24.486+0000] {logging_mixin.py:188} INFO - 26 else
+[2024-07-23T07:37:24.486+0000] {logging_mixin.py:188} INFO - K.LngReg.NP/Graphite.black/
+[2024-07-23T07:37:24.486+0000] {logging_mixin.py:188} INFO - 248 else
+[2024-07-23T07:37:24.487+0000] {logging_mixin.py:188} INFO - К.MSF.01.Ts.Skull/Black.01/
+[2024-07-23T07:37:24.487+0000] {logging_mixin.py:188} INFO - 461 else
+[2024-07-23T07:37:24.487+0000] {logging_mixin.py:188} INFO - K.LngReg.SeamLogo/White.01/
+[2024-07-23T07:37:24.487+0000] {logging_mixin.py:188} INFO - 271 else
+[2024-07-23T07:37:24.487+0000] {logging_mixin.py:188} INFO - K.Ts.Threecats/Black.01/
+[2024-07-23T07:37:24.487+0000] {logging_mixin.py:188} INFO - 14
+[2024-07-23T07:37:24.488+0000] {logging_mixin.py:188} INFO - K.Ts.GhostSkull/Grey.01/
+[2024-07-23T07:37:24.488+0000] {logging_mixin.py:188} INFO - 147 else
+[2024-07-23T07:37:24.488+0000] {logging_mixin.py:188} INFO - K.Ts.BlackCat/Khaki.01/
+[2024-07-23T07:37:24.488+0000] {logging_mixin.py:188} INFO - 296 else
+[2024-07-23T07:37:24.488+0000] {logging_mixin.py:188} INFO - K.LngReg.Gothic/Black.01/
+[2024-07-23T07:37:24.488+0000] {logging_mixin.py:188} INFO - 171 else
+[2024-07-23T07:37:24.488+0000] {logging_mixin.py:188} INFO - K.Ts.Gengar/Grey.01/
+[2024-07-23T07:37:24.488+0000] {logging_mixin.py:188} INFO - 147 else
+[2024-07-23T07:37:24.489+0000] {logging_mixin.py:188} INFO - K.Ts.Dino/Graphite.01/
+[2024-07-23T07:37:24.489+0000] {logging_mixin.py:188} INFO - 80 else
+[2024-07-23T07:37:24.489+0000] {logging_mixin.py:188} INFO - K.Ts.Spray/Grey.01/
+[2024-07-23T07:37:24.489+0000] {logging_mixin.py:188} INFO - 80 else
+[2024-07-23T07:37:24.489+0000] {logging_mixin.py:188} INFO - K.Ts.Wildheart/Blue.01/
+[2024-07-23T07:37:24.489+0000] {logging_mixin.py:188} INFO - 39 else
+[2024-07-23T07:37:24.489+0000] {logging_mixin.py:188} INFO - K.Ts.MemesEat/White.01/
+[2024-07-23T07:37:24.490+0000] {logging_mixin.py:188} INFO - 80 else
+[2024-07-23T07:37:24.490+0000] {logging_mixin.py:188} INFO - K.Ts.Scarface/Red.01/
+[2024-07-23T07:37:24.490+0000] {logging_mixin.py:188} INFO - 80 else
+[2024-07-23T07:37:24.490+0000] {logging_mixin.py:188} INFO - К.EVG.01.Ts1501.0170/Black.02/
+[2024-07-23T07:37:24.490+0000] {logging_mixin.py:188} INFO - 1058 else
+[2024-07-23T07:37:24.490+0000] {logging_mixin.py:188} INFO - K.Ts.Hiroshima/White.01/
+[2024-07-23T07:37:24.490+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.491+0000] {logging_mixin.py:188} INFO - K.LngReg.Mariposa/White.01/
+[2024-07-23T07:37:24.491+0000] {logging_mixin.py:188} INFO - 291 else
+[2024-07-23T07:37:24.491+0000] {logging_mixin.py:188} INFO - K.Ts.Hellboy/Grey.01/
+[2024-07-23T07:37:24.491+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.491+0000] {logging_mixin.py:188} INFO - K.Ts.TishkaVinyl/Beige.01/
+[2024-07-23T07:37:24.491+0000] {logging_mixin.py:188} INFO - 300 else
+[2024-07-23T07:37:24.491+0000] {logging_mixin.py:188} INFO - K.Ts.Skaytim/Grey.01/
+[2024-07-23T07:37:24.491+0000] {logging_mixin.py:188} INFO - 147 else
+[2024-07-23T07:37:24.492+0000] {logging_mixin.py:188} INFO - K.Ts.GrangeMan/Brown.01/
+[2024-07-23T07:37:24.492+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.492+0000] {logging_mixin.py:188} INFO - К.EVG.01.Ts1501.0170/Black.03/
+[2024-07-23T07:37:24.492+0000] {logging_mixin.py:188} INFO - 892 else
+[2024-07-23T07:37:24.492+0000] {logging_mixin.py:188} INFO - K.TS.Axolotl/Red.01/
+[2024-07-23T07:37:24.492+0000] {logging_mixin.py:188} INFO - 241 else
+[2024-07-23T07:37:24.492+0000] {logging_mixin.py:188} INFO - K.Ts.UnknowCaller/Grey.01/
+[2024-07-23T07:37:24.493+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.493+0000] {logging_mixin.py:188} INFO - K.LngReg.Porshe/White.01/
+[2024-07-23T07:37:24.493+0000] {logging_mixin.py:188} INFO - 290 else
+[2024-07-23T07:37:24.493+0000] {logging_mixin.py:188} INFO - K.HalfZip.FleeceNP/Black/
+[2024-07-23T07:37:24.493+0000] {logging_mixin.py:188} INFO - 240 else
+[2024-07-23T07:37:24.493+0000] {logging_mixin.py:188} INFO - K.LngReg.BStar/White.01/
+[2024-07-23T07:37:24.493+0000] {logging_mixin.py:188} INFO - 290 else
+[2024-07-23T07:37:24.494+0000] {logging_mixin.py:188} INFO - K.Ts.RokstarBOY/Black.01/
+[2024-07-23T07:37:24.494+0000] {logging_mixin.py:188} INFO - 147 else
+[2024-07-23T07:37:24.494+0000] {logging_mixin.py:188} INFO - K.Ts.GetRich/Black.01/
+[2024-07-23T07:37:24.494+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.494+0000] {logging_mixin.py:188} INFO - K.LngReg.NP/Graphite.red/
+[2024-07-23T07:37:24.494+0000] {logging_mixin.py:188} INFO - 241 else
+[2024-07-23T07:37:24.494+0000] {logging_mixin.py:188} INFO - К.ANM.01.Ts1501.0180/Black.03/
+[2024-07-23T07:37:24.494+0000] {logging_mixin.py:188} INFO - 981 else
+[2024-07-23T07:37:24.495+0000] {logging_mixin.py:188} INFO - K.Ts.Dance/Grey.01/
+[2024-07-23T07:37:24.495+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.495+0000] {logging_mixin.py:188} INFO - K.Ts.Reg.Np/White.Black/
+[2024-07-23T07:37:24.495+0000] {logging_mixin.py:188} INFO - 26 else
+[2024-07-23T07:37:24.495+0000] {logging_mixin.py:188} INFO - K.Ts.Toxic/White.01/
+[2024-07-23T07:37:24.495+0000] {logging_mixin.py:188} INFO - 80 else
+[2024-07-23T07:37:24.495+0000] {logging_mixin.py:188} INFO - K.Ts.AngryBeavers/Brown.01/
+[2024-07-23T07:37:24.495+0000] {logging_mixin.py:188} INFO - 146 else
+[2024-07-23T07:37:24.496+0000] {logging_mixin.py:188} INFO - K.LngReg.FuckOff/Green.01/
+[2024-07-23T07:37:24.496+0000] {logging_mixin.py:188} INFO - 171 else
+[2024-07-23T07:37:24.496+0000] {logging_mixin.py:188} INFO - K.Ts.Romance/Pink.01/
+[2024-07-23T07:37:24.496+0000] {logging_mixin.py:188} INFO - 52 else
+[2024-07-23T07:37:24.496+0000] {logging_mixin.py:188} INFO - K.Ts.Duck/Light.Grey.01/
+[2024-07-23T07:37:24.496+0000] {logging_mixin.py:188} INFO - 80 else
+[2024-07-23T07:37:24.496+0000] {logging_mixin.py:188} INFO - K.Ts.ChelPauk/Black.01/
+[2024-07-23T07:37:24.497+0000] {logging_mixin.py:188} INFO - 171 else
+[2024-07-23T07:37:24.497+0000] {logging_mixin.py:188} INFO - K.Ts.Rose/Pink.01/
+[2024-07-23T07:37:24.497+0000] {logging_mixin.py:188} INFO - 52 else
+[2024-07-23T07:37:24.497+0000] {logging_mixin.py:188} INFO - K.Ts.Ferrari/Yellow.01/
+[2024-07-23T07:37:24.497+0000] {logging_mixin.py:188} INFO - 52 else
+[2024-07-23T07:37:24.497+0000] {logging_mixin.py:188} INFO - K.LngReg.NP/Brown.black/
+[2024-07-23T07:37:24.497+0000] {logging_mixin.py:188} INFO - 248 else
+[2024-07-23T07:37:24.497+0000] {logging_mixin.py:188} INFO - K.LngReg.NP/Melange/
+[2024-07-23T07:37:24.498+0000] {logging_mixin.py:188} INFO - 270 else
+[2024-07-23T07:37:24.498+0000] {logging_mixin.py:188} INFO - K.LngReg.SeamLogo/Black.01/
+[2024-07-23T07:37:24.498+0000] {logging_mixin.py:188} INFO - 271 else
+[2024-07-23T07:37:24.498+0000] {logging_mixin.py:188} INFO - K.Ts.DontAlone/Blue.01/
+[2024-07-23T07:37:24.498+0000] {logging_mixin.py:188} INFO - 264 else
+[2024-07-23T07:37:24.498+0000] {logging_mixin.py:188} INFO - K.Ts.Loyal/Yellow.01/
+[2024-07-23T07:37:24.498+0000] {logging_mixin.py:188} INFO - 52 else
+[2024-07-23T07:37:24.498+0000] {logging_mixin.py:188} INFO - К.RCK.09.Ts1502.0180/Black.01/
+[2024-07-23T07:37:24.499+0000] {logging_mixin.py:188} INFO - 988 else
+[2024-07-23T07:37:24.499+0000] {logging_mixin.py:188} INFO - K.LngReg.NP/Beige.green/
+[2024-07-23T07:37:24.499+0000] {logging_mixin.py:188} INFO - 248 else
+[2024-07-23T07:37:24.499+0000] {logging_mixin.py:188} INFO - K.LngReg.Moscow/Brown.01/
+[2024-07-23T07:37:24.499+0000] {logging_mixin.py:188} INFO - 62 else
+[2024-07-23T07:37:24.499+0000] {logging_mixin.py:188} INFO - K.Ts.Angelic/Khaki.01/
+[2024-07-23T07:37:24.499+0000] {logging_mixin.py:188} INFO - 296 else
+[2024-07-23T07:37:24.500+0000] {logging_mixin.py:188} INFO - К.PVZ.01.Ts0901.0180/Black.01/
+[2024-07-23T07:37:24.500+0000] {logging_mixin.py:188} INFO - 1111 else
+[2024-07-23T07:37:24.500+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-07-23T07:37:24.501+0000] {taskinstance.py:2890} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 465, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 432, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/baseoperator.py", line 400, in wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/operators/python.py", line 235, in execute
+    return_value = self.execute_callable()
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/operators/python.py", line 252, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/airflow/dags/send_message_and_calculate_ABC.py", line 653, in start_dag
+    main()
+  File "/opt/airflow/dags/send_message_and_calculate_ABC.py", line 642, in main
+    categories = calculate_ABC(vendor_codes_by_period, vendorCode_dict, categories_by_period)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/airflow/dags/send_message_and_calculate_ABC.py", line 544, in calculate_ABC
+    ABC_14(vendor_codes_by_period[1]),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/airflow/dags/send_message_and_calculate_ABC.py", line 458, in ABC_14
+    elif turnover[ven] <= CONFIG_ABC['EBITDA']["ABC_TURNOVER_14"]:
+                          ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+KeyError: 'ABC_TURNOVER_14'
+[2024-07-23T07:37:24.518+0000] {taskinstance.py:1205} INFO - Marking task as UP_FOR_RETRY. dag_id=send_message_and_calculate_ABC, task_id=send_message_and_calculate_ABC, execution_date=20240723T073717, start_date=20240723T073718, end_date=20240723T073724
+[2024-07-23T07:37:24.533+0000] {standard_task_runner.py:110} ERROR - Failed to execute job 2686 for task send_message_and_calculate_ABC ('ABC_TURNOVER_14'; 151840)
+[2024-07-23T07:37:24.556+0000] {local_task_job_runner.py:240} INFO - Task exited with return code 1
+[2024-07-23T07:37:24.581+0000] {taskinstance.py:3482} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-07-23T07:37:24.582+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

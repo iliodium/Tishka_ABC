@@ -317,4 +317,3 @@ networks:
 volumes:
   postgres_db_volume:
     name: 'postgres_db_volume'
-

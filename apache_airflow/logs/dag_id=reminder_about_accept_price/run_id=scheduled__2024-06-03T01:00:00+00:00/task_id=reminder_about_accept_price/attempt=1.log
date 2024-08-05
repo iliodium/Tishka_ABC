@@ -1,0 +1,66 @@
+[2024-06-04T17:59:09.005+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-06-04T17:59:09.094+0000] {taskinstance.py:2073} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: reminder_about_accept_price.reminder_about_accept_price scheduled__2024-06-03T01:00:00+00:00 [queued]>
+[2024-06-04T17:59:09.113+0000] {taskinstance.py:2073} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: reminder_about_accept_price.reminder_about_accept_price scheduled__2024-06-03T01:00:00+00:00 [queued]>
+[2024-06-04T17:59:09.114+0000] {taskinstance.py:2303} INFO - Starting attempt 1 of 1
+[2024-06-04T17:59:09.147+0000] {taskinstance.py:2327} INFO - Executing <Task(PythonOperator): reminder_about_accept_price> on 2024-06-03 01:00:00+00:00
+[2024-06-04T17:59:09.169+0000] {warnings.py:110} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:61: DeprecationWarning: This process (pid=85) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-06-04T17:59:09.166+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'reminder_about_accept_price', 'reminder_about_accept_price', 'scheduled__2024-06-03T01:00:00+00:00', '--job-id', '1114', '--raw', '--subdir', 'DAGS_FOLDER/reminder_about_accept_price.py', '--cfg-path', '/tmp/tmp8s9o9sgk']
+[2024-06-04T17:59:09.171+0000] {standard_task_runner.py:63} INFO - Started process 89 to run task
+[2024-06-04T17:59:09.171+0000] {standard_task_runner.py:91} INFO - Job 1114: Subtask reminder_about_accept_price
+[2024-06-04T17:59:09.350+0000] {task_command.py:426} INFO - Running <TaskInstance: reminder_about_accept_price.reminder_about_accept_price scheduled__2024-06-03T01:00:00+00:00 [running]> on host d40bdb4a74ef
+[2024-06-04T17:59:09.643+0000] {taskinstance.py:2644} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='reminder_about_accept_price' AIRFLOW_CTX_TASK_ID='reminder_about_accept_price' AIRFLOW_CTX_EXECUTION_DATE='2024-06-03T01:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-06-03T01:00:00+00:00'
+[2024-06-04T17:59:09.644+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-06-04T17:59:11.418+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-06-04T17:59:11.418+0000] {taskinstance.py:2890} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 465, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 432, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/baseoperator.py", line 400, in wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/operators/python.py", line 235, in execute
+    return_value = self.execute_callable()
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/operators/python.py", line 252, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/airflow/dags/reminder_about_accept_price.py", line 53, in start_dag
+    asyncio.run(main())
+  File "/usr/local/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/asyncio/base_events.py", line 685, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/opt/airflow/dags/reminder_about_accept_price.py", line 47, in main
+    message = get_message()
+              ^^^^^^^^^^^^^
+  File "/opt/airflow/dags/reminder_about_accept_price.py", line 26, in get_message
+    flag = True if sheet.cell(1, 2).value == 'Нет' else False
+                   ^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/gspread/worksheet.py", line 351, in cell
+    data = self.get(
+           ^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/gspread/worksheet.py", line 951, in get
+    response = self.client.values_get(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/gspread/http_client.py", line 231, in values_get
+    r = self.request("get", url, params=params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/gspread/http_client.py", line 123, in request
+    raise APIError(response)
+gspread.exceptions.APIError: {'code': 429, 'message': "Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:735755711859'.", 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'RATE_LIMIT_EXCEEDED', 'domain': 'googleapis.com', 'metadata': {'consumer': 'projects/735755711859', 'service': 'sheets.googleapis.com', 'quota_limit_value': '60', 'quota_location': 'global', 'quota_metric': 'sheets.googleapis.com/read_requests', 'quota_limit': 'ReadRequestsPerMinutePerUser'}}, {'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Request a higher quota limit.', 'url': 'https://cloud.google.com/docs/quota#requesting_higher_quota'}]}]}
+[2024-06-04T17:59:11.455+0000] {taskinstance.py:1205} INFO - Marking task as FAILED. dag_id=reminder_about_accept_price, task_id=reminder_about_accept_price, execution_date=20240603T010000, start_date=20240604T175909, end_date=20240604T175911
+[2024-06-04T17:59:11.518+0000] {standard_task_runner.py:110} ERROR - Failed to execute job 1114 for task reminder_about_accept_price ({'code': 429, 'message': "Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:735755711859'.", 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.ErrorInfo', 'reason': 'RATE_LIMIT_EXCEEDED', 'domain': 'googleapis.com', 'metadata': {'consumer': 'projects/735755711859', 'service': 'sheets.googleapis.com', 'quota_limit_value': '60', 'quota_location': 'global', 'quota_metric': 'sheets.googleapis.com/read_requests', 'quota_limit': 'ReadRequestsPerMinutePerUser'}}, {'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Request a higher quota limit.', 'url': 'https://cloud.google.com/docs/quota#requesting_higher_quota'}]}]}; 89)
+[2024-06-04T17:59:11.543+0000] {local_task_job_runner.py:240} INFO - Task exited with return code 1
+[2024-06-04T17:59:11.618+0000] {taskinstance.py:3482} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-06-04T17:59:11.629+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

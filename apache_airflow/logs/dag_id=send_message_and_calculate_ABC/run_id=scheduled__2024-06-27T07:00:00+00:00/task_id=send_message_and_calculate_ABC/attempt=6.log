@@ -1,0 +1,52 @@
+[2024-06-28T07:14:21.319+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2024-06-28T07:14:21.342+0000] {taskinstance.py:2073} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: send_message_and_calculate_ABC.send_message_and_calculate_ABC scheduled__2024-06-27T07:00:00+00:00 [queued]>
+[2024-06-28T07:14:21.350+0000] {taskinstance.py:2073} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: send_message_and_calculate_ABC.send_message_and_calculate_ABC scheduled__2024-06-27T07:00:00+00:00 [queued]>
+[2024-06-28T07:14:21.350+0000] {taskinstance.py:2303} INFO - Starting attempt 6 of 6
+[2024-06-28T07:14:21.364+0000] {taskinstance.py:2327} INFO - Executing <Task(PythonOperator): send_message_and_calculate_ABC> on 2024-06-27 07:00:00+00:00
+[2024-06-28T07:14:21.372+0000] {warnings.py:110} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:61: DeprecationWarning: This process (pid=290938) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-06-28T07:14:21.374+0000] {standard_task_runner.py:63} INFO - Started process 290940 to run task
+[2024-06-28T07:14:21.374+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'send_message_and_calculate_ABC', 'send_message_and_calculate_ABC', 'scheduled__2024-06-27T07:00:00+00:00', '--job-id', '1905', '--raw', '--subdir', 'DAGS_FOLDER/send_message_and_calculate_ABC.py', '--cfg-path', '/tmp/tmpma2d8ko_']
+[2024-06-28T07:14:21.376+0000] {standard_task_runner.py:91} INFO - Job 1905: Subtask send_message_and_calculate_ABC
+[2024-06-28T07:14:21.429+0000] {task_command.py:426} INFO - Running <TaskInstance: send_message_and_calculate_ABC.send_message_and_calculate_ABC scheduled__2024-06-27T07:00:00+00:00 [running]> on host d40bdb4a74ef
+[2024-06-28T07:14:21.527+0000] {taskinstance.py:2644} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='send_message_and_calculate_ABC' AIRFLOW_CTX_TASK_ID='send_message_and_calculate_ABC' AIRFLOW_CTX_EXECUTION_DATE='2024-06-27T07:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='6' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-06-27T07:00:00+00:00'
+[2024-06-28T07:14:21.528+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2024-06-28T07:14:30.781+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2024-06-28T07:14:30.782+0000] {taskinstance.py:2890} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 465, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/taskinstance.py", line 432, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/models/baseoperator.py", line 400, in wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/operators/python.py", line 235, in execute
+    return_value = self.execute_callable()
+                   ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/airflow/operators/python.py", line 252, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/airflow/dags/send_message_and_calculate_ABC.py", line 639, in start_dag
+    main()
+  File "/opt/airflow/dags/send_message_and_calculate_ABC.py", line 631, in main
+    write_categories_to_google_sheet(categories, vendorCode_dict)
+  File "/opt/airflow/dags/send_message_and_calculate_ABC.py", line 393, in write_categories_to_google_sheet
+    sheet_ABC.update(range_name='A2', values=list(dict_ABC.values()))
+  File "/home/airflow/.local/lib/python3.12/site-packages/gspread/worksheet.py", line 1239, in update
+    response = self.client.values_update(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/gspread/http_client.py", line 168, in values_update
+    r = self.request("put", url, params=params, json=body)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.12/site-packages/gspread/http_client.py", line 123, in request
+    raise APIError(response)
+gspread.exceptions.APIError: {'code': 400, 'message': 'Range (ABC!A2) exceeds grid limits. Max rows: 1, max columns: 13', 'status': 'INVALID_ARGUMENT'}
+[2024-06-28T07:14:30.797+0000] {taskinstance.py:1205} INFO - Marking task as FAILED. dag_id=send_message_and_calculate_ABC, task_id=send_message_and_calculate_ABC, execution_date=20240627T070000, start_date=20240628T071421, end_date=20240628T071430
+[2024-06-28T07:14:30.813+0000] {standard_task_runner.py:110} ERROR - Failed to execute job 1905 for task send_message_and_calculate_ABC ({'code': 400, 'message': 'Range (ABC!A2) exceeds grid limits. Max rows: 1, max columns: 13', 'status': 'INVALID_ARGUMENT'}; 290940)
+[2024-06-28T07:14:30.855+0000] {local_task_job_runner.py:240} INFO - Task exited with return code 1
+[2024-06-28T07:14:30.875+0000] {taskinstance.py:3482} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-06-28T07:14:30.876+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
