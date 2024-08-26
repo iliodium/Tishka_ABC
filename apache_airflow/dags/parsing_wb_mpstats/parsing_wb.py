@@ -167,21 +167,34 @@ def transform_data(nmids_list, data_current, data_previous) -> list:
             0,  # Остатки склад, шт
         ])
 
-        for ch, ph in zip(data_current[nmid]['history'], data_previous[nmid]['history']):
+        for ch in data_current[nmid]['history']:
             row[2] += ch['ordersCount']
-            row[3] += ph['ordersCount']
-
             row[4] += ch['buyoutsCount']
-            row[5] += ph['buyoutsCount']
-
             row[6] += ch['buyoutPercent']
-            row[7] += ph['buyoutPercent']
-
             row[8] += ch['ordersSumRub']
+
+        for ph in data_previous[nmid]['history']:
+            row[3] += ph['ordersCount']
+            row[5] += ph['buyoutsCount']
+            row[7] += ph['buyoutPercent']
             row[9] += ph['ordersSumRub']
+
+        # for ch, ph in zip(data_current[nmid]['history'], data_previous[nmid]['history']):
+        #     row[2] += ch['ordersCount']
+        #     row[3] += ph['ordersCount']
+        #
+        #     row[4] += ch['buyoutsCount']
+        #     row[5] += ph['buyoutsCount']
+        #
+        #     row[6] += ch['buyoutPercent']
+        #     row[7] += ph['buyoutPercent']
+        #
+        #     row[8] += ch['ordersSumRub']
+        #     row[9] += ph['ordersSumRub']
 
         row[6] /= 6
         row[7] /= 7
+
         try:
             row[10] = row[8] / row[2]
         except ZeroDivisionError:

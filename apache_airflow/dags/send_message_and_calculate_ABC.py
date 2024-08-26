@@ -130,22 +130,65 @@ def get_vendor_codes_by_period(nmids):
         [],  # 28+
     ]
 
-    current_date = date.today()# - timedelta(days=2)
+    current_date = date.today()  # - timedelta(days=2)
 
     date_pattern = "%Y-%m-%d"
     for i in nmids.values():
         vendor_date = datetime.strptime(i['sku_first_date'], date_pattern).date()
         print(i['vendorCode'])
         if i['vendorCode'] in (
-            'K.Ts.McQueen/Black.01/',
-            'K.Ts.Cult/Black.01/',
-            'K.Ts.Threecats/Black.01/',
-            'K.Ts.Bunnies/Black.01/',
-            'K.Ts.Auto/Black.01/'
+                'K.Ts.McQueen/Black.01/',
+                'K.Ts.Cult/Black.01/',
+                'K.Ts.Threecats/Black.01/',
+                'K.Ts.Bunnies/Black.01/',
+                'K.Ts.Auto/Black.01/'
         ):
             dt = (current_date - vendor_date + timedelta(days=1)).days
             print(dt)
-
+        elif  i['vendorCode'] in  """K.Ts.Dbl.NinjaTurtles/Beige.Red.01/
+K.Ts.Dbl.MusicBaby/Beige.Red.01/
+K.Ts.Dbl.Kotopes/Beige.Red.01/
+K.Ts.Dbl.Tabasco/Beige.Green.01/
+K.Ts.Dbl.Thinkyou/Beige.Black.01/
+K.Ts.Dbl.RabbitLove/Beige.Green.01/
+K.Ts.Dbl.Frog/Beige.Green.01/
+K.Ts.Dbl.Division/Beige.Green.01/
+K.Ts.Dbl.Roman/Beige.Black.01/
+K.Ts.Dbl.FreakFriends/Beige.Green.01/
+K.Ts.Dbl.PerfectBody/Beige.Black.01/
+K.Ts.Dbl.Obsessed/Beige.Black.01/
+K.Ts.Dbl.Scammer/Beige.Red.01/
+K.Ts.Dbl.Walkman/Beige.Red.01/
+K.Ts.Dbl.Selfmade/Beige.Black.01/
+K.Ts.Reg.BlackKitten/White.01/
+K.Ts.Reg.GameOfHearts/White.Black.01/
+K.Ts.Reg.Burnout/White.01/
+K.Ts.Reg.HappyFarm/White.01/
+K.Ts.Reg.CuteBunny/White.Black.01/
+K.Ts.Reg.TrustNo/White.Black.01/
+K.Ts.Reg.Nothin/White.Black.01/
+K.Ts.Reg.Kotiki/White.Black.01/
+K.Ts.Reg.Insanekot/White.Black.01/
+K.Ts.GymChicks/Violet.01/
+K.Ts.LilDevil/Violet.01/
+K.Ts.Leaves/Violet.01/
+K.Ts.Never/Violet.01/
+K.Ts.Dbl.Np/Black.White/
+K.Ts.Dbl.Np/Brown.Black/
+K.Ts.Dbl.Np/Violet.Black/""":
+            dt = 21
+            #continue
+        elif i['vendorCode'] in """K.Ts.Dbl.MusicBaby/Beige.Red.01/
+            K.Ts.Dbl.Kotopes/Beige.Red.01/
+            K.Ts.Dbl.RabbitLove/Beige.Green.01/
+            K.Ts.Dbl.Division/Beige.Green.01/
+            K.Ts.Reg.BlackKitten/White.01/
+            K.Ts.Reg.Burnout/White.01/
+            K.Ts.Reg.HappyFarm/White.01/
+            K.Ts.Dbl.Np/Black.White/
+            K.Ts.Dbl.Np/Brown.Black/
+            K.Ts.Dbl.Np/Violet.Black/""":
+            dt = (current_date - (vendor_date + timedelta(days=1))).days
         else:
             dt = (current_date - vendor_date).days
             print(dt, 'else')
@@ -261,9 +304,9 @@ def get_data_from_spreadsheet():
 
     all_nmids = set(nmids_ebitda_wb).intersection(set(nmids_list_mpstat))
     nmid_vendorCode = {nmid: vendorCode_list_wb[nmids_list_wb.index(nmid)] for nmid in all_nmids}
-
+    #print(nmid_vendorCode)
     good_nmid_vendorCode = {nmid: ven for nmid, ven in nmid_vendorCode.items() if ven in data_from_ebitda}
-
+    print(good_nmid_vendorCode)
     nmids_dict = {nmid: {'sku_first_date': data_from_mpstat[nmid]['sku_first_date'],
                          'vendorCode': ven
                          } for nmid, ven in good_nmid_vendorCode.items()}
