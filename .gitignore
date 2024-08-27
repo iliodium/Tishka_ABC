@@ -3,6 +3,9 @@
 /__pycache__
 __pycache__/
 /__pycache__/
+/log
+log/
+/log/
 /venv*
 .env
 test.py
