@@ -6,3 +6,5 @@
 test.py
 *.json
 *.toml
+*.pyc
+apache_airflow/logs/scheduler/latest

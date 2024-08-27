@@ -176,8 +176,8 @@ K.Ts.Never/Violet.01/
 K.Ts.Dbl.Np/Black.White/
 K.Ts.Dbl.Np/Brown.Black/
 K.Ts.Dbl.Np/Violet.Black/""":
-            dt = 21
-            #continue
+            #dt = 21
+            continue
         elif i['vendorCode'] in """K.Ts.Dbl.MusicBaby/Beige.Red.01/
             K.Ts.Dbl.Kotopes/Beige.Red.01/
             K.Ts.Dbl.RabbitLove/Beige.Green.01/

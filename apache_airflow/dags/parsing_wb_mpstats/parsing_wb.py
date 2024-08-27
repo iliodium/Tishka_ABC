@@ -12,19 +12,20 @@ import requests
 
 KEY_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), './../abc-dev-415713-a2a407ac569b.json')
 
-KEY = os.environ['GOOGLESHEET_KEY']
+KEY = None
+FILE = None
+token_wb = None
+HEADERS = None
 
 url_to_price_sheet = f'https://docs.google.com/spreadsheets/d/{KEY}'
 url_generate_report = 'https://seller-analytics-api.wildberries.ru/api/v2/nm-report/downloads'
 
 GC = gspread.service_account(KEY_PATH)
-FILE = GC.open_by_key(KEY)
 
 RABBITMQ_USERNAME = os.environ['RABBITMQ_USERNAME']
 RABBITMQ_PASSWORD = os.environ['RABBITMQ_PASSWORD']
 RABBITMQ_DNS = os.environ['RABBITMQ_DNS']
 
-token_wb = os.environ['TOKEN_WB']
 
 TIME_SLEEP = 1
 
@@ -32,7 +33,6 @@ headers_temp_wb = lambda token: {
     "Content-Type": "application/json",
     "Authorization": token,
 }
-HEADERS = headers_temp_wb(token_wb)
 
 request_body_temp = lambda nmids_list, begin, end: {
     "nmIDs": nmids_list,
@@ -371,15 +371,22 @@ def get_data_from_wb(nmids_list):
     return data_all_nmids_current, data_all_nmids_previous
 
 
-def main(nmids):
+def main(nmids, _key, _token_wb, _shop_name):
     try:
+        global KEY, FILE, token_wb, HEADERS
+        KEY = _key
+        FILE = GC.open_by_key(KEY)
+        token_wb = _token_wb
+        HEADERS = headers_temp_wb(_token_wb)
+
+
         data_all_nmids_current, data_all_nmids_previous = get_data_from_wb(nmids)
         print(1)
         data = transform_data(nmids, data_all_nmids_current, data_all_nmids_previous)
         print(2)
         write_to_google_sheet(data)
 
-        send_message_to_queue('Сбор данных с wb прошел успешно')
+        send_message_to_queue('<b>{_shop_name}</b> Сбор данных с wb прошел успешно')
     except Exception as e:
-        send_message_to_queue('Ошибка при сборе данных с wb')
+        send_message_to_queue('<b>{_shop_name}</b> Ошибка при сборе данных с wb')
         raise Exception

@@ -7,18 +7,17 @@ import requests
 
 KEY_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), './../abc-dev-415713-a2a407ac569b.json')
 
-KEY = os.environ['GOOGLESHEET_KEY']
-
-url_to_price_sheet = f'https://docs.google.com/spreadsheets/d/{KEY}'
-
 GC = gspread.service_account(KEY_PATH)
-FILE = GC.open_by_key(KEY)
+
+KEY = None
+url_to_price_sheet = None
+FILE = None
+token_mpstats = None
 
 RABBITMQ_USERNAME = os.environ['RABBITMQ_USERNAME']
 RABBITMQ_PASSWORD = os.environ['RABBITMQ_PASSWORD']
 RABBITMQ_DNS = os.environ['RABBITMQ_DNS']
 
-token_mpstats = os.environ['TOKEN_MPSTATS']
 
 TIME_SLEEP = 1
 
@@ -115,15 +114,21 @@ def send_message_to_queue(message):
     connection.close()
 
 
-def main():
+def main(_key, _token_mpstats, _shop_name):
     try:
+        global KEY, url_to_price_sheet, FILE, token_mpstats
+        KEY = _key
+        url_to_price_sheet = f'https://docs.google.com/spreadsheets/d/{KEY}'
+        FILE = GC.open_by_key(KEY)
+        token_mpstats = _token_mpstats
+
         nmids, data = get_data_from_mpstats()
         write_to_google_sheet(data)
 
-        send_message_to_queue('Сбор данных с mpstats прошел успешно')
+        send_message_to_queue(f'<b>{_shop_name}</b> Сбор данных с mpstats прошел успешно')
         return {
             'nmids': nmids
         }
     except Exception as e:
-        send_message_to_queue('Ошибка при сборе данных с mpstats')
+        send_message_to_queue(f'<b>{_shop_name}</b> Ошибка при сборе данных с mpstats')
         raise Exception
