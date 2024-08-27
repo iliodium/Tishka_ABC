@@ -46,32 +46,8 @@ async def cmd_healthcheck(message: types.Message):
 class ConfigForm(StatesGroup):
     PARAMETER = State()
 
+SELLER = None
 
-@dp.message(lambda message: message.text in kb.all_config_words)
-async def set_parameter(message: types.Message, state: FSMContext):
-    await state.update_data(PARAMETER=message.text)
-    await message.answer(text="Введите новое значение")
-    await state.set_state(ConfigForm.PARAMETER)
-
-
-@dp.message(ConfigForm.PARAMETER)
-async def set_new_value(message: types.Message, state: FSMContext):
-    data = await state.get_data()
-    try:
-        b = {
-            'config': 'ABC_config',
-            'method': "POST",
-            'data': {
-                data['PARAMETER']: int(message.text)
-            }
-        }
-
-        send_message_to_queue(json.dumps(b, indent=4).encode('utf-8'), 'queue_config')
-        await message.answer(text=f"{data['PARAMETER']} = {message.text}")
-    except ValueError:
-        await message.answer(text=f"Неверное значение\nValueError")
-    finally:
-        await state.clear()
 
 
 def send_message_to_queue(body, routing_key='services'):
@@ -82,7 +58,7 @@ def send_message_to_queue(body, routing_key='services'):
                                                                                 RABBITMQ_USERNAME,
                                                                                 RABBITMQ_PASSWORD)))
     CHANNEL_RABBITMQ = CONNECTION_RABBITMQ.channel()
-    CHANNEL_RABBITMQ.basic_publish(exchange='', routing_key=routing_key, body=body)
+    CHANNEL_RABBITMQ.basic_publish(exchange='', routing_key=routing_key, body=json.dumps(body, indent=4).encode('utf-8'))
     CONNECTION_RABBITMQ.close()
 
 
@@ -129,43 +105,81 @@ def get_config_abc_message():
     return response
 
 
-@dp.message(F.text == kb.parameters[-1][0])
+@dp.message(F.text == 'Назад')
 async def step_back(message: types.Message):
     await message.answer('Выберите действие', reply_markup=kb.keyboard)
 
 
-@dp.message(F.text == kb.texts[3])
+@dp.message(F.text == "Изменить конфигурацию")
 async def handler(message: types.Message):
     await message.answer("Выберите параметр для изменения", reply_markup=kb.config_keybord)
 
+@dp.message(lambda message: message.text in kb.all_config_words)
+async def set_parameter(message: types.Message, state: FSMContext):
+    await state.update_data(PARAMETER=message.text)
+    await message.answer(text="Введите новое значение")
+    await state.set_state(ConfigForm.PARAMETER)
 
-@dp.message(F.text == kb.texts[2])
+
+@dp.message(ConfigForm.PARAMETER)
+async def set_new_value(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+    try:
+        b = {
+            'config': 'ABC_config',
+            'method': "POST",
+            'data': {
+                data['PARAMETER']: int(message.text)
+            }
+        }
+
+        send_message_to_queue(json.dumps(b, indent=4).encode('utf-8'), 'queue_config')
+        await message.answer(text=f"{data['PARAMETER']} = {message.text}")
+    except ValueError:
+        await message.answer(text=f"Неверное значение\nValueError")
+    finally:
+        await state.clear()
+
+@dp.message(F.text == "Отобразить конфигурацию")
 async def user_action(message: types.Message):
     await message.answer(get_config_abc_message())
 
+@dp.message(F.text == "Tishka")
+@dp.message(F.text == "Future Milf")
+async def seller_choice(message: types.Message):
+    global SELLER
+    SELLER = message.text
+    await message.answer('Выберите действие', reply_markup=kb.price_keyboard)
 
-@dp.message(F.text == kb.texts[0])
-@dp.message(F.text == kb.texts[1])
-async def user_action(message: types.Message):
+
+
+@dp.message(F.text == "Подтвердить цены")
+@dp.message(F.text == "Поменять цены сейчас")
+async def price_action_choice(message: types.Message):
     text = message.text
 
     if text == "Подтвердить цены":
         current_task = 'accept_price'
-        answer = 'Хорошо, цена будет загружена сегодня в 23:30'
+        answer = f'<b>{SELLER}</b> Хорошо, цена будет загружена сегодня в 23:30'
     else:
         current_task = 'change_price'
-        answer = 'Изменяю цену'
+        answer = f'<b>{SELLER}</b> Изменяю цену'
 
-    send_message_to_queue(current_task)
-    await message.answer(answer)
+    body = {
+        'current_task':current_task,
+        'seller':SELLER
+        }
+    await message.answer(answer, reply_markup=kb.keyboard, parse_mode="HTML")
+    send_message_to_queue(body)
+
 
 
 # from aiogram.types import InputFile
 # from aiogram.types import FSInputFile
 
 
-async def send_message(message):
-    await bot.send_message(ID_CHAT, message, parse_mode="HTML")
+async def send_message(message,reply_markup=None):
+    await bot.send_message(ID_CHAT, message, parse_mode="HTML", reply_markup=reply_markup)
     # with open('../audio_2024-05-21_22-36-53.ogg', 'rb') as audio_file:
     # audio_input = FSInputFile('../audio_2024-05-21_22-36-53.ogg')
     # await bot.send_voice(ID_CHAT, audio_input)

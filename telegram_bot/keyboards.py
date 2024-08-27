@@ -2,17 +2,26 @@ from functools import reduce
 
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 
-texts = [
-    "Подтвердить цены",
-    "Поменять цены сейчас",
-    "Отобразить конфигурацию",
-    "Изменить конфигурацию",
-]
+# ЕСЛИ МЕНЯЕШЬ НАЗВАНИЕ КНОПОК ТО И В КОДЕ ТОЖЕ МЕНЯЙ
 
 keyboard = ReplyKeyboardMarkup(
     keyboard=[
         [
-            KeyboardButton(text=t) for t in texts
+            KeyboardButton(text=t) for t in line
+        ]
+        for line in [
+    ["Tishka", "Future Milf"],
+    ["Отобразить конфигурацию", "Изменить конфигурацию"]
+
+]
+    ],
+    one_time_keyboard=True
+)
+
+price_keyboard = ReplyKeyboardMarkup(
+    keyboard=[
+        [
+            KeyboardButton(text=t) for t in ["Подтвердить цены", "Поменять цены сейчас"]
         ]
     ],
     one_time_keyboard=True

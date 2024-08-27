@@ -5,10 +5,10 @@ cd ~/tishka || exit
 
 # Запускаем docker-compose для каждого файла
 #docker compose -f rabbitmq/docker-compose.yaml --env-file rabbitmq/.env up -d
-docker compose -f apache_airflow/docker-compose.yaml --env-file envs/.env.apache_airflow_port --env-file envs/.env.apache_airflow_dns --env-file apache_airflow/.env up -d
+#docker compose -f apache_airflow/docker-compose.yaml --env-file envs/.env.apache_airflow_port --env-file envs/.env.apache_airflow_dns --env-file apache_airflow/.env up -d
 #docker compose -f services/docker-compose.yaml up -d
 #docker compose -f config_server/docker-compose.yaml up -d
-#docker compose -f telegram_bot/docker-compose.yaml --env-file telegram_bot/.env up -d
+docker compose -f telegram_bot/docker-compose.yaml --env-file telegram_bot/.env up -d
 
 
 #source envs/.env.rabbitmq_user_log_pass

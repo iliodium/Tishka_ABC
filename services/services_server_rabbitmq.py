@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 
 import pika
 import requests
@@ -35,21 +36,29 @@ def main():
     error_message = 'Не удалось'
 
     def callback_messages(ch, method, properties, body):
-        if body == b'accept_price':
+        try:
+            body = json.loads(body)
+        except Exception as e:
+            channel.basic_publish(exchange='', routing_key='messages', body=f'<b>{seller}</b> Проблема с json файлом')
+
+        current_task = body['current_task']
+        seller = body['seller']
+
+        if current_task == 'accept_price':
             try:
                 manual_trigger_dag('accept_price')
-                channel.basic_publish(exchange='', routing_key='messages', body='Цены подтверждены')
+                channel.basic_publish(exchange='', routing_key='messages', body=f'<b>{seller}</b> Цены подтверждены')
             except Exception as e:
-                channel.basic_publish(exchange='', routing_key='messages', body=f'{error_message} подтвердить\n{e}')
+                channel.basic_publish(exchange='', routing_key='messages', body=f'<b>{seller}</b> {error_message} подтвердить\n{e}')
 
-        elif body == b'change_price':
+        elif current_task == 'change_price':
             try:
                 manual_trigger_dag('change_price')
-                channel.basic_publish(exchange='', routing_key='messages', body='Цены изменены')
+                channel.basic_publish(exchange='', routing_key='messages', body=f'<b>{seller}</b> Цены изменены')
             except Exception as e:
-                channel.basic_publish(exchange='', routing_key='messages', body=f'{error_message} изменить цену\n{e}')
+                channel.basic_publish(exchange='', routing_key='messages', body=f'<b>{seller}</b> {error_message} изменить цену\n{e}')
         else:
-            channel.basic_publish(exchange='', routing_key='messages', body='Команда не найдена')
+            channel.basic_publish(exchange='', routing_key='messages', body=f'<b>{seller}</b> Команда не найдена')
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
 

@@ -55,7 +55,7 @@ def start_dag():
 
 default_args = {
     'owner': 'airflow',
-    'start_date': datetime(2024, 5, 18),
+    'start_date': datetime(2024, 8, 27),
 }
 
 with DAG(dag_id='reminder_about_accept_price',

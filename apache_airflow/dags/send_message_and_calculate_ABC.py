@@ -14,12 +14,12 @@ from airflow.operators.python import PythonOperator
 RABBITMQ_USERNAME = environ['RABBITMQ_USERNAME']
 RABBITMQ_PASSWORD = environ['RABBITMQ_PASSWORD']
 RABBITMQ_DNS = environ['RABBITMQ_DNS']
-KEY = environ['GOOGLESHEET_KEY']
 
-url_to_price_sheet = f'https://docs.google.com/spreadsheets/d/{KEY}'
+KEY = None
+FILE = None
+url_to_price_sheet = None
 
 GC = gspread.service_account(path.join(path.abspath(path.dirname(__file__)), 'abc-dev-415713-a2a407ac569b.json'))
-FILE = GC.open_by_key(KEY)
 
 CONFIG_ABC = None
 
@@ -52,6 +52,7 @@ class GooglesheetWorksheet(StrEnum):
     ebitda = "EBITDA"
     abc = "ABC"
     update_price = "Загрузка цены"
+    manual_date = 'Ручные даты'
 
 
 class TempText(StrEnum):
@@ -130,69 +131,13 @@ def get_vendor_codes_by_period(nmids):
         [],  # 28+
     ]
 
-    current_date = date.today()  # - timedelta(days=2)
+    current_date = date.today()
 
     date_pattern = "%Y-%m-%d"
     for i in nmids.values():
         vendor_date = datetime.strptime(i['sku_first_date'], date_pattern).date()
-        print(i['vendorCode'])
-        if i['vendorCode'] in (
-                'K.Ts.McQueen/Black.01/',
-                'K.Ts.Cult/Black.01/',
-                'K.Ts.Threecats/Black.01/',
-                'K.Ts.Bunnies/Black.01/',
-                'K.Ts.Auto/Black.01/'
-        ):
-            dt = (current_date - vendor_date + timedelta(days=1)).days
-            print(dt)
-        elif  i['vendorCode'] in  """K.Ts.Dbl.NinjaTurtles/Beige.Red.01/
-K.Ts.Dbl.MusicBaby/Beige.Red.01/
-K.Ts.Dbl.Kotopes/Beige.Red.01/
-K.Ts.Dbl.Tabasco/Beige.Green.01/
-K.Ts.Dbl.Thinkyou/Beige.Black.01/
-K.Ts.Dbl.RabbitLove/Beige.Green.01/
-K.Ts.Dbl.Frog/Beige.Green.01/
-K.Ts.Dbl.Division/Beige.Green.01/
-K.Ts.Dbl.Roman/Beige.Black.01/
-K.Ts.Dbl.FreakFriends/Beige.Green.01/
-K.Ts.Dbl.PerfectBody/Beige.Black.01/
-K.Ts.Dbl.Obsessed/Beige.Black.01/
-K.Ts.Dbl.Scammer/Beige.Red.01/
-K.Ts.Dbl.Walkman/Beige.Red.01/
-K.Ts.Dbl.Selfmade/Beige.Black.01/
-K.Ts.Reg.BlackKitten/White.01/
-K.Ts.Reg.GameOfHearts/White.Black.01/
-K.Ts.Reg.Burnout/White.01/
-K.Ts.Reg.HappyFarm/White.01/
-K.Ts.Reg.CuteBunny/White.Black.01/
-K.Ts.Reg.TrustNo/White.Black.01/
-K.Ts.Reg.Nothin/White.Black.01/
-K.Ts.Reg.Kotiki/White.Black.01/
-K.Ts.Reg.Insanekot/White.Black.01/
-K.Ts.GymChicks/Violet.01/
-K.Ts.LilDevil/Violet.01/
-K.Ts.Leaves/Violet.01/
-K.Ts.Never/Violet.01/
-K.Ts.Dbl.Np/Black.White/
-K.Ts.Dbl.Np/Brown.Black/
-K.Ts.Dbl.Np/Violet.Black/""":
-            #dt = 21
-            continue
-        elif i['vendorCode'] in """K.Ts.Dbl.MusicBaby/Beige.Red.01/
-            K.Ts.Dbl.Kotopes/Beige.Red.01/
-            K.Ts.Dbl.RabbitLove/Beige.Green.01/
-            K.Ts.Dbl.Division/Beige.Green.01/
-            K.Ts.Reg.BlackKitten/White.01/
-            K.Ts.Reg.Burnout/White.01/
-            K.Ts.Reg.HappyFarm/White.01/
-            K.Ts.Dbl.Np/Black.White/
-            K.Ts.Dbl.Np/Brown.Black/
-            K.Ts.Dbl.Np/Violet.Black/""":
-            dt = (current_date - (vendor_date + timedelta(days=1))).days
-        else:
-            dt = (current_date - vendor_date).days
-            print(dt, 'else')
-
+        dt = (current_date - vendor_date).days
+        
         if dt == 7:
             vendor_codes[0].append(i["vendorCode"])
         elif dt == 14:
@@ -255,12 +200,17 @@ def get_data_from_spreadsheet():
     sheet_wb = FILE.worksheet(GooglesheetWorksheet.wb)
     sheet_ebitda = FILE.worksheet(GooglesheetWorksheet.ebitda)
     sheet_ABC = FILE.worksheet(GooglesheetWorksheet.abc)
+    sheet_manual_date = FILE.worksheet(GooglesheetWorksheet.manual_date)
 
     nmids_list_mpstat = sheet_mpstat.col_values(1)[1:]
     first_date_list = sheet_mpstat.col_values(5)[1:]
 
     data_from_mpstat = {nmid: {MPStatColumnName.sku_first_date: ven} for nmid, ven in
                         zip(nmids_list_mpstat, first_date_list)}
+    
+    ven_manual_date =  {ven: dt for dt, ven in
+                        zip(sheet_manual_date.col_values(1)[1:], sheet_manual_date.col_values(2)[1:])}
+
 
     vendorCode_list_wb = sheet_wb.col_values(1)[1:]
     nmids_list_wb = sheet_wb.col_values(2)[1:]
@@ -304,12 +254,13 @@ def get_data_from_spreadsheet():
 
     all_nmids = set(nmids_ebitda_wb).intersection(set(nmids_list_mpstat))
     nmid_vendorCode = {nmid: vendorCode_list_wb[nmids_list_wb.index(nmid)] for nmid in all_nmids}
-    #print(nmid_vendorCode)
+
     good_nmid_vendorCode = {nmid: ven for nmid, ven in nmid_vendorCode.items() if ven in data_from_ebitda}
-    print(good_nmid_vendorCode)
-    nmids_dict = {nmid: {'sku_first_date': data_from_mpstat[nmid]['sku_first_date'],
+
+    nmids_dict = {nmid: {'sku_first_date': ven_manual_date[ven] if ven in ven_manual_date else data_from_mpstat[nmid]['sku_first_date'],
                          'vendorCode': ven
                          } for nmid, ven in good_nmid_vendorCode.items()}
+    
     vendorCode_dict = {ven: {'percent_buyouts': data_from_wb[ven]['percent_buyouts'],
                              'ordered': data_from_wb[ven]['ordered'] / 7,
                              'remains': data_from_wb[ven]['remains'],
@@ -674,8 +625,13 @@ def send_message_to_queue(message):
     CHANNEL_RABBITMQ.basic_publish(exchange='', routing_key='messages', body=message)
 
 
-def main():
-    global VENDORCODES_UNION
+def main(_key, _shop_name):
+    global VENDORCODES_UNION, KEY, FILE, url_to_price_sheet
+    
+    KEY = _key
+    FILE = GC.open_by_key(KEY)
+    url_to_price_sheet = f'https://docs.google.com/spreadsheets/d/{KEY}'
+    
     get_config_abc()
 
     nmids, vendorCode_dict, categories_by_period = get_data_from_spreadsheet()
@@ -688,26 +644,33 @@ def main():
     write_recommended_price_to_sheet(vendor_codes_by_period, vendorCode_dict)
 
     message = get_message(vendor_codes_by_period)
+    message = f'<b>{_shop_name}</b>\n{message}'
     send_message_to_queue(message)
 
 
-def start_dag():
-    print("##################")
-    main()
+def start_dag(_key, _shop_name):
+    main(_key, _shop_name)
     CONNECTION_RABBITMQ.close()
 
 
 default_args = {
     'owner': 'airflow',
-    'start_date': datetime(2024, 5, 18),
+    'start_date': datetime(2024, 8, 27),
 }
 
-with DAG(dag_id='send_message_and_calculate_ABC',
+with DAG(dag_id='send_message_and_calculate_ABC_Tishka',
          schedule='0 7 * * *',
          default_args=default_args) as dag:
+    key = environ['GOOGLESHEET_KEY']
+    shop_name = 'Tishka'
+
     dice = PythonOperator(
-        task_id='send_message_and_calculate_ABC',
+        task_id='send_message_and_calculate_ABC_Tishka',
         python_callable=start_dag,
+        op_kwargs={
+        '_key': key,
+        '_shop_name':shop_name,
+        },
         dag=dag,
         retries=5,
         retry_delay=timedelta(minutes=1),
@@ -715,5 +678,23 @@ with DAG(dag_id='send_message_and_calculate_ABC',
         retry_exponential_backoff=True
     )
 
-if __name__ == '__main__':
-    start_dag()
+with DAG(dag_id='send_message_and_calculate_ABC_Future_milf',
+         schedule='0 7 * * *',
+         default_args=default_args) as dag:
+    
+    key = environ['GOOGLESHEET_KEY_FUTURE_MILF']
+    shop_name = 'Future milf'
+
+    dice = PythonOperator(
+        task_id='send_message_and_calculate_ABC_Future_milf',
+        python_callable=start_dag,
+        op_kwargs={
+        '_key': key,
+        '_shop_name':shop_name,
+        },
+        dag=dag,
+        retries=5,
+        retry_delay=timedelta(minutes=1),
+        max_retry_delay=timedelta(minutes=3),
+        retry_exponential_backoff=True
+    )
