@@ -8,12 +8,11 @@ from airflow.operators.python import PythonOperator
 
 KEY_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), './../abc-dev-415713-a2a407ac569b.json')
 
-KEY = os.environ['GOOGLESHEET_KEY']
-
 GC = gspread.service_account(KEY_PATH)
-FILE = GC.open_by_key(KEY)
+KEY = None
+FILE = None
+token_wb_price = None
 
-token_wb_price = os.environ['TOKEN_WB_PRICE']
 url_price = 'https://discounts-prices-api.wb.ru/api/v2/upload/task'
 
 headers_temp_wb = lambda token: {
@@ -67,13 +66,24 @@ def main():
     nmid_price = {
         int(ven_nmid[ven]): int(ven_price[ven]) for ven in ven_price
     }
-    if nmid_price:
-        change_price(nmid_price)
+    # if nmid_price:
+    #     change_price(nmid_price)
 
     sheet.update_cell(1, 4, 'Да')
 
 
-def start_dag():
+def start_dag(shop_name):
+    global FILE, url_to_price_sheet, token_wb_price
+    if shop_name == 'Tishka':
+        KEY = os.environ['GOOGLESHEET_KEY']
+        token_wb_price = os.environ['TOKEN_WB_PRICE']
+    elif shop_name == 'Future milf':
+        KEY = os.environ['GOOGLESHEET_KEY_FUTURE_MILF']
+        token_wb_price = os.environ['TOKEN_WB_PRICE_FUTURE_MILF']
+
+    FILE = GC.open_by_key(KEY)
+    url_to_price_sheet = f'https://docs.google.com/spreadsheets/d/{KEY}'
+
     main()
 
 
@@ -81,12 +91,34 @@ default_args = {
     'owner': 'airflow',
 }
 
-with DAG(dag_id='change_price',
+with DAG(dag_id='change_price_Tishka',
          schedule=None,
-         default_args=default_args) as dag:
+         default_args=default_args,
+        tags=['Tishka']) as dag:
+    
+    shop_name = 'Tishka'
+
     dice = PythonOperator(
-        task_id='change_price',
+        task_id='change_price_Tishka',
         python_callable=start_dag,
+        op_kwargs={
+        'shop_name':shop_name,
+        },
+        dag=dag)
+    
+with DAG(dag_id='change_price_Future_Milf',
+         schedule=None,
+         default_args=default_args,
+        tags=['Future_milf']) as dag:
+    
+    shop_name = 'Future milf'
+
+    dice = PythonOperator(
+        task_id='change_price_Future_Milf',
+        python_callable=start_dag,
+        op_kwargs={
+        'shop_name':shop_name,
+        },
         dag=dag)
 
 if __name__ == '__main__':

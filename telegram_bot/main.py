@@ -16,7 +16,7 @@ from aiogram.fsm.state import StatesGroup, State
 import keyboards as kb
 
 # from dotenv import load_dotenv
-#
+
 # load_dotenv()
 # load_dotenv('../envs/.env.rabbitmq_dns')
 # load_dotenv('../envs/.env.rabbitmq_user_log_pass')
@@ -45,6 +45,9 @@ async def cmd_healthcheck(message: types.Message):
 
 class ConfigForm(StatesGroup):
     PARAMETER = State()
+
+class SellerForm(StatesGroup):
+    SELLER = State()
 
 SELLER = None
 
@@ -146,31 +149,34 @@ async def user_action(message: types.Message):
 
 @dp.message(F.text == "Tishka")
 @dp.message(F.text == "Future Milf")
-async def seller_choice(message: types.Message):
-    global SELLER
-    SELLER = message.text
+async def seller_choice(message: types.Message, state: FSMContext):
+    await state.update_data(SELLER=message.text)
     await message.answer('Выберите действие', reply_markup=kb.price_keyboard)
+    await state.set_state(SellerForm.SELLER)
 
 
 
-@dp.message(F.text == "Подтвердить цены")
-@dp.message(F.text == "Поменять цены сейчас")
-async def price_action_choice(message: types.Message):
+@dp.message(SellerForm.SELLER)
+async def price_action_choice(message: types.Message, state: FSMContext):
     text = message.text
+    data = await state.get_data()
+    seller = data['SELLER']
 
     if text == "Подтвердить цены":
         current_task = 'accept_price'
-        answer = f'<b>{SELLER}</b> Хорошо, цена будет загружена сегодня в 23:30'
+        answer = f'<b>{seller}</b> Хорошо, цена будет загружена сегодня в 23:30'
     else:
         current_task = 'change_price'
-        answer = f'<b>{SELLER}</b> Изменяю цену'
+        answer = f'<b>{seller}</b> Изменяю цену'
 
     body = {
         'current_task':current_task,
-        'seller':SELLER
+        'seller':seller
         }
+
     await message.answer(answer, reply_markup=kb.keyboard, parse_mode="HTML")
     send_message_to_queue(body)
+    await state.clear()
 
 
 
@@ -225,7 +231,7 @@ async def start(loop):
 
 
 if __name__ == '__main__':
-    while True:
+    while True:      
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)

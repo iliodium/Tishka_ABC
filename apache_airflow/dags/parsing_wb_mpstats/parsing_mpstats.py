@@ -62,12 +62,13 @@ def write_to_google_sheet(data):
 
     sheet.clear()
     sheet.resize(len(data) + 1, len(sheet_headers))
-
+    print(13123123)
+    print(data)
     sheet.update(range_name='A1', values=[sheet_headers])
     sheet.update(range_name='A2', values=data)
 
 
-def get_data_from_mpstats():
+def get_data_from_mpstats(official_seller_name):
     request_body = {
         'startRow': 0,
         'endRow': 5000,
@@ -77,7 +78,7 @@ def get_data_from_mpstats():
 
     df_c, dt_c, _, _ = get_dates()
 
-    url = url_temp_mpstat.format(df_c, dt_c, 'Tiшka')
+    url = url_temp_mpstat.format(df_c, dt_c, official_seller_name)
 
     request = requests.post(url, headers=headers_temp_mpstat(token_mpstats), json=request_body)
     while request.status_code != 200:
@@ -122,7 +123,12 @@ def main(_key, _token_mpstats, _shop_name):
         FILE = GC.open_by_key(KEY)
         token_mpstats = _token_mpstats
 
-        nmids, data = get_data_from_mpstats()
+        nmids, data = get_data_from_mpstats({
+            'Future milf':'Кочергин Михаил Дмитриевич',
+            'Tishka':'Tiшka'
+        }[_shop_name])
+
+        print(data)
         write_to_google_sheet(data)
 
         send_message_to_queue(f'<b>{_shop_name}</b> Сбор данных с mpstats прошел успешно')

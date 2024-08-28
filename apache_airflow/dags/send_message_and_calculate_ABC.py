@@ -15,7 +15,6 @@ RABBITMQ_USERNAME = environ['RABBITMQ_USERNAME']
 RABBITMQ_PASSWORD = environ['RABBITMQ_PASSWORD']
 RABBITMQ_DNS = environ['RABBITMQ_DNS']
 
-KEY = None
 FILE = None
 url_to_price_sheet = None
 
@@ -237,11 +236,11 @@ def get_data_from_spreadsheet():
     # margin = sheet_ebitda.col_values(7)[2:]  # маржа
     data_from_ebitda = {
         ven: {
-            'prime_cost': float(pr_cs),
-            'kosti': float(kos),
-            'logistics': float(log),
-            'price': float(price),
-            'ebitda': float(ebitda),
+            'prime_cost': float(pr_cs.replace(',','.').replace(' ','')),
+            'kosti': float(kos.replace(',','.').replace(' ','')),
+            'logistics': float(log.replace(',','.').replace(' ','')),
+            'price': float(price.replace(',','.').replace(' ','')),
+            'ebitda': float(ebitda.replace(',','.').replace(' ','')),
         }
         for ven, pr_cs, kos, log, price, ebitda in
         zip(vendorCode_list_ebitda, prime_cost_list_ebitda, kosti_list_ebitda, logistics_list_ebitda, price_list_ebitda,
@@ -625,13 +624,7 @@ def send_message_to_queue(message):
     CHANNEL_RABBITMQ.basic_publish(exchange='', routing_key='messages', body=message)
 
 
-def main(_key, _shop_name):
-    global VENDORCODES_UNION, KEY, FILE, url_to_price_sheet
-    
-    KEY = _key
-    FILE = GC.open_by_key(KEY)
-    url_to_price_sheet = f'https://docs.google.com/spreadsheets/d/{KEY}'
-    
+def main(_shop_name):
     get_config_abc()
 
     nmids, vendorCode_dict, categories_by_period = get_data_from_spreadsheet()
@@ -648,8 +641,16 @@ def main(_key, _shop_name):
     send_message_to_queue(message)
 
 
-def start_dag(_key, _shop_name):
-    main(_key, _shop_name)
+def start_dag(_shop_name):
+    global FILE, url_to_price_sheet
+    if shop_name == 'Tishka':
+        KEY = environ['GOOGLESHEET_KEY']
+    elif shop_name == 'Future milf':
+        KEY = environ['GOOGLESHEET_KEY_FUTURE_MILF']
+    FILE = GC.open_by_key(KEY)
+    url_to_price_sheet = f'https://docs.google.com/spreadsheets/d/{KEY}'
+
+    main(_shop_name)
     CONNECTION_RABBITMQ.close()
 
 
@@ -660,15 +661,15 @@ default_args = {
 
 with DAG(dag_id='send_message_and_calculate_ABC_Tishka',
          schedule='0 7 * * *',
+        tags=['Tishka'],
          default_args=default_args) as dag:
-    key = environ['GOOGLESHEET_KEY']
+    
     shop_name = 'Tishka'
 
     dice = PythonOperator(
         task_id='send_message_and_calculate_ABC_Tishka',
         python_callable=start_dag,
         op_kwargs={
-        '_key': key,
         '_shop_name':shop_name,
         },
         dag=dag,
@@ -678,18 +679,17 @@ with DAG(dag_id='send_message_and_calculate_ABC_Tishka',
         retry_exponential_backoff=True
     )
 
-with DAG(dag_id='send_message_and_calculate_ABC_Future_milf',
-         schedule='0 7 * * *',
-         default_args=default_args) as dag:
+with DAG(dag_id='send_message_and_calculate_ABC_Future_Milf',
+        schedule='0 7 * * *',
+        tags=['Future_milf'],
+        default_args=default_args) as dag:
     
-    key = environ['GOOGLESHEET_KEY_FUTURE_MILF']
     shop_name = 'Future milf'
 
     dice = PythonOperator(
-        task_id='send_message_and_calculate_ABC_Future_milf',
+        task_id='send_message_and_calculate_ABC_Future_Milf',
         python_callable=start_dag,
         op_kwargs={
-        '_key': key,
         '_shop_name':shop_name,
         },
         dag=dag,

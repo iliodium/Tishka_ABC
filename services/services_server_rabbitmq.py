@@ -16,11 +16,11 @@ APACHE_AIRFLOW_DNS = os.environ['APACHE_AIRFLOW_DNS']
 url_manual_trigger_dag = 'http://{}:8080/api/v1/dags/{}/dagRuns'
 
 
-def manual_trigger_dag(dag_id: str):
-    url = url_manual_trigger_dag.format(APACHE_AIRFLOW_DNS, dag_id)
+def manual_trigger_dag(dag_id: str, seller:str):
+    url = url_manual_trigger_dag.format(APACHE_AIRFLOW_DNS, f'{dag_id}_{seller.replace(' ', '_')}')
     result = requests.post(url, json={}, auth=(APACHE_AIRFLOW_USER_USERNAME, APACHE_AIRFLOW_USER_PASSWORD))
     if result.status_code != 200:
-        raise Exception
+        raise Exception(result.json())
 
 def main():
     credentials = pika.PlainCredentials(RABBITMQ_USERNAME, RABBITMQ_PASSWORD)
@@ -46,14 +46,14 @@ def main():
 
         if current_task == 'accept_price':
             try:
-                manual_trigger_dag('accept_price')
+                manual_trigger_dag('accept_price', seller)
                 channel.basic_publish(exchange='', routing_key='messages', body=f'<b>{seller}</b> Цены подтверждены')
             except Exception as e:
-                channel.basic_publish(exchange='', routing_key='messages', body=f'<b>{seller}</b> {error_message} подтвердить\n{e}')
+                channel.basic_publish(exchange='', routing_key='messages', body=f'<b>{seller}</b> {error_message} подтвердить 123\n{e}')
 
         elif current_task == 'change_price':
             try:
-                manual_trigger_dag('change_price')
+                manual_trigger_dag('change_price', seller)
                 channel.basic_publish(exchange='', routing_key='messages', body=f'<b>{seller}</b> Цены изменены')
             except Exception as e:
                 channel.basic_publish(exchange='', routing_key='messages', body=f'<b>{seller}</b> {error_message} изменить цену\n{e}')

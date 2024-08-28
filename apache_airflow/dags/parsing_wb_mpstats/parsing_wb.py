@@ -384,9 +384,10 @@ def main(nmids, _key, _token_wb, _shop_name):
         print(1)
         data = transform_data(nmids, data_all_nmids_current, data_all_nmids_previous)
         print(2)
+        print(data)
         write_to_google_sheet(data)
 
-        send_message_to_queue('<b>{_shop_name}</b> Сбор данных с wb прошел успешно')
+        send_message_to_queue(f'<b>{_shop_name}</b> Сбор данных с wb прошел успешно')
     except Exception as e:
-        send_message_to_queue('<b>{_shop_name}</b> Ошибка при сборе данных с wb')
+        send_message_to_queue(f'<b>{_shop_name}</b> Ошибка при сборе данных с wb')
         raise Exception
